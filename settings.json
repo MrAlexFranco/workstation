@@ -1,0 +1,118 @@
+{
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "copyFormatting": "none",
+    "copyOnSelect": true,
+    "startOnUserLogin": true,
+    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    // Add custom keybindings to this array.
+    // To unbind a key combination from your defaults.json, set the command to "unbound".
+    // To learn more about keybindings, visit https://aka.ms/terminal-keybindings
+    "keybindings": [
+        // Copy and paste are bound to Ctrl+Shift+C and Ctrl+Shift+V in your defaults.json.
+        // These two lines additionally bind them to Ctrl+C and Ctrl+V.
+        // To learn more about selection, visit https://aka.ms/terminal-selection
+        {
+            "command": {
+                "action": "copy",
+                "singleLine": false
+            },
+            "keys": "ctrl+c"
+        },
+        {
+            "command": "paste",
+            "keys": "ctrl+v"
+        },
+        // Press Ctrl+Shift+F to open the search box
+        {
+            "command": "find",
+            "keys": "ctrl+shift+f"
+        },
+        // Press Alt+Shift+D to open a new pane.
+        // - "split": "auto" makes this pane open in the direction that provides the most surface area.
+        // - "splitMode": "duplicate" makes the new pane use the focused pane's profile.
+        // To learn more about panes, visit https://aka.ms/terminal-panes
+        {
+            "command": {
+                "action": "splitPane",
+                "split": "auto",
+                "splitMode": "duplicate"
+            },
+            "keys": "alt+shift+d"
+        }
+    ],
+    "profiles": {
+        "defaults": {
+            "background": "#000000",
+            "cursorShape": "vintage",
+            "fontFace": "DejaVu Sans Mono for Powerline",
+            "fontSize": 12
+        },
+        "list": [
+            {
+                "name": "PowerShell",
+                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                "source": "Windows.Terminal.PowershellCore",
+                "startingDirectory": "$env:DEV"
+            },
+            {
+                "name": "Windows PowerShell",
+                "commandline": "powershell.exe",
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "startingDirectory": "$env:DEV"
+            },
+            {
+                "name": "cmd",
+                "commandline": "cmd.exe",
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "startingDirectory": "C:\\PSTools"
+            },
+            {
+                "name": "Python",
+                "commandline": "python.exe",
+                "guid": "{1850e97f-16dc-4281-9ea9-0100c4e852c5}",
+                "icon": "C:/Python38/Lib/test/imghdrdata/python.png"
+            },
+            {
+                "name": "Azure Cloud Shell",
+                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+                "source": "Windows.Terminal.Azure",
+                "startingDirectory": "$env:DEV"
+            },
+            {
+                "name": "Exchange Online",
+                "commandline": "powershell.exe -noexit -command Import-Module ExchangeOnlineManagement; Connect-ExchangeOnline -UserPrincipalName ('{0}@{1}' -f $env:USERNAME, $env:USERDNSDOMAIN) -ShowProgress $true",
+                "guid": "{81bdb789-dced-49ea-9d08-2db2a0aeb81d}"
+            },
+            {
+                "name": "Exchange On-Prem",
+                "commandline": "powershell.exe -noexit -command Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ('http://{0}/PowerShell' -f (Resolve-DnsName (Resolve-DnsName relay | select -ExpandProperty IPAddress)).NameHost) -Authentication Kerberos -Credential (Import-Clixml C:\\Scripts\\pw.xml)) -DisableNameChecking",
+                "guid": "{51fb8f91-9dd2-456b-b7a6-f85923b6f895}"
+            }
+        ]
+    },
+    "schemes": [
+        {
+            "name": "Campbell",
+            "background": "#0C0C0C",
+            "black": "#0C0C0C",
+            "blue": "#0037DA",
+            "brightBlack": "#767676",
+            "brightBlue": "#3B78FF",
+            "brightCyan": "#61D6D6",
+            "brightGreen": "#16C60C",
+            "brightPurple": "#B4009E",
+            "brightRed": "#E74856",
+            "brightWhite": "#F2F2F2",
+            "brightYellow": "#F9F1A5",
+            "cursorColor": "#FFFFFF",
+            "cyan": "#3A96DD",
+            "foreground": "#CCCCCC",
+            "green": "#13A10E",
+            "purple": "#881798",
+            "red": "#C50F1F",
+            "selectionBackground": "#FFFFFF",
+            "white": "#CCCCCC",
+            "yellow": "#C19C00"
+        }
+    ]
+}
