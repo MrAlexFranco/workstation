@@ -87,8 +87,8 @@ function ping2 {
     while ($true) {
         $ping = Test-Connection $ComputerName -Count 1 -Quiet
         if ($ping) {
-            [Console]::Beep(); [Console]::Beep(); [Console]::Beep();
-            Start-Sleep -Seconds 3
+            Write-Host -NoNewline '!'
+            [Console]::Beep()
         } else {
             Write-Host -NoNewline '.'
         }    
