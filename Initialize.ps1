@@ -5,30 +5,30 @@ param (
     [switch]$FirstRun
 )
 
+$apps = @(
+    '7zip.7zip'
+    'Audacity.Audacity'
+    'CodecGuide.K-LiteCodecPackStandard'
+    'DominikReichl.KeePass'
+    'Git.Git'
+    'Google.Chrome'
+    'Insecure.Nmap'
+    'Microsoft.PowerShell'
+    'Microsoft.PowerToys'
+    'Microsoft.VisualStudioCode.User-x64'
+    'Microsoft.WindowsTerminal'
+    'Mozilla.FireFox'
+    'Notepad++.Notepad++'
+    'PuTTY.PuTTY'
+    'Python.Python'
+    'VideoLAN.VLC'
+    'Win32diskimager.win32diskimager'
+    'WiresharkFoundation.Wireshark'
+)
+
 if ($FirstRun) {
-    $apps = @(
-        '7zip.7zip'
-        'Audacity.Audacity'
-        'CodecGuide.K-LiteCodecPackStandard'
-        'DominikReichl.KeePass'
-        'Git.Git'
-        'Google.Chrome'
-        'Insecure.Nmap'
-        'Microsoft.PowerShell'
-        'Microsoft.PowerToys'
-        'Microsoft.VisualStudioCode.User-x64'
-        'Microsoft.WindowsTerminal'
-        'Mozilla.FireFox'
-        'Notepad++.Notepad++'
-        'PuTTY.PuTTY'
-        'Python.Python'
-        'VideoLAN.VLC'
-        'Win32diskimager.win32diskimager'
-        'WiresharkFoundation.Wireshark'
-    )
-    
-    # Winget install
-    $apps | foreach-object { winget install $_ }
+    # Winget
+    $apps | ForEach-Object { winget install $_ }
 
     # Install the PowerLine fonts that make my prompt look nifty
     Set-Location $env:USERPROFILE
@@ -76,7 +76,7 @@ if ($FirstRun) {
     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'ConsentPromptBehaviorAdmin' -Value 0
 
 } else {
-    winget upgrade --all
+    $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 }
 
 # Copy profile
@@ -88,17 +88,24 @@ foreach ($proPath in @(
         "$($env:userprofile)\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
         "$($env:userprofile)\Documents\WindowsPowerShell\Microsoft.VSCode_profile.ps1"
     )) {
-    Remove-Item -Path $proPath -Force -ErrorAction SilentlyContinue
+
+    Remove-Item -Path $proPath -Force -ErrorAction SilentlyContinue | Out-Null
     New-Item -Path $proPath -Force | Out-Null
-    Set-Content -Value $profileContent -Path $proPath
+    Set-Content -Value $profileContent -Path $proPath | Out-Null
 }
 
 # AlexFranco module
 'Updating AlexFranco.psm1...'
-$module = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/dev-workstation/master/AlexFranco.psm1' -UseBasicParsing).Content
-New-Item -Path "$env:USERPROFILE\Documents\PowerShell\Modules\AlexFranco\" -Name AlexFranco.psm1 -Type File -Value $module -Force | Out-Null
+$moduleContent = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/dev-workstation/master/AlexFranco.psm1' -UseBasicParsing).Content
+$modulePath = "$env:USERPROFILE\Documents\PowerShell\Modules\AlexFranco\AlexFranco.psm1"
+Remove-Item -Path $modulePath -Force -ErrorAction SilentlyContinue | Out-Null
+New-Item -Path $modulePath -Force | Out-Null
+Set-Content -Path $modulePath -Value $moduleContent | Out-Null
 
 # Microsoft Terminal settings
 'Updating Microsoft Terminal settings...'
 $terminalSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/dev-workstation/master/settings.json' -UseBasicParsing).Content
-Set-Content -Value $terminalSettings -Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json" -Force
+$settingsPath = Resolve-Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json"
+Remove-Item -Path $settingsPath -Force -ErrorAction SilentlyContinue | Out-Null
+New-Item -Path $settingsPath -Force | Out-Null
+Set-Content -Path $settingsPath -Value $terminalSettings | Out-Null
