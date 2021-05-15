@@ -21,6 +21,7 @@ $apps = @(
     'Notepad++.Notepad++'
     'PuTTY.PuTTY'
     'Python.Python'
+    'ProtonTechnologies.ProtonVPN'
     'VideoLAN.VLC'
     'Win32diskimager.win32diskimager'
     'WiresharkFoundation.Wireshark'
