@@ -39,6 +39,10 @@ if ($FirstRun) {
 
     # PowerShell modules
     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+    Install-PackageProvider -Name NuGet -Force
+    Update-Module -Name PowerShellGet -RequiredVersion 2.2.5
+
+    Install-Module -Name PSReadLine -AllowPrerelease -Force
     $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
 
     $moduleList | ForEach-Object {
@@ -62,9 +66,6 @@ if ($FirstRun) {
         }
     }
 
-    # Install the VS Code ext for syncing my settings
-    code --install-extension Shan.code-settings-sync
-
     # Show extensions for known file types; current user
     Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'HideFileExt' -Value 0
 
@@ -75,7 +76,8 @@ if ($FirstRun) {
     # Regkey to turn off UAC consent prompt behavior for Admins; NOT disabling UAC gloablly
     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'ConsentPromptBehaviorAdmin' -Value 0
 
-} else {
+}
+else {
     $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 }
 
