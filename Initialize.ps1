@@ -15,7 +15,7 @@ $apps = @(
     'Insecure.Nmap'
     'Microsoft.PowerShell'
     'Microsoft.PowerToys'
-    'Microsoft.VisualStudioCode.User-x64'
+    'Microsoft.VisualStudioCode'
     'Microsoft.WindowsTerminal'
     'Mozilla.FireFox'
     'Notepad++.Notepad++'
