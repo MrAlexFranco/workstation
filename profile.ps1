@@ -1,5 +1,8 @@
 Clear-Host
 
+#Region Custom Prompt
+Set-PoshPrompt -Theme $env:USERPROFILE\.material.json
+
 # Remove curl alias so it won't interfere with installed curl
 Remove-Item -Path Alias:\curl -Force -ErrorAction SilentlyContinue
 
@@ -18,5 +21,3 @@ Set-Alias -Name ~ -Value $env:USERPROFILE
 
 Set-Location $env:DEV
 
-#Region Custom Prompt
-Set-PoshPrompt -Theme $env:USERPROFILE\.material.json
