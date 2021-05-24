@@ -29,6 +29,7 @@ Requires:
     Fonts: https://github.com/thomasrayner/fonts
 #>
 
+<#
 $global:forePromptColor = 0
 $global:leftArrow = [char]0xe0b2
 $global:rightArrow = [char]0xe0b0
@@ -66,3 +67,4 @@ function global:prompt {
     $prompt
 }
 #EndRegion Custom Prompt
+#>
