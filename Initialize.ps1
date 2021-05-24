@@ -41,7 +41,7 @@ if ($FirstRun) {
     # PowerShell modules
     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
     Install-PackageProvider -Name NuGet -Force
-    Update-Module -Name PowerShellGet -RequiredVersion 2.2.5
+    Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
 
     Install-Module -Name PSReadLine -AllowPrerelease -Force
     $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
@@ -77,6 +77,19 @@ if ($FirstRun) {
     # Regkey to turn off UAC consent prompt behavior for Admins; NOT disabling UAC gloablly
     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'ConsentPromptBehaviorAdmin' -Value 0
 
+    # 
+    New-Item -Path C:\Temp -ItemType Directory
+    New-Item -Path C:\Git\git.code-workspace -ItemType File -Force
+    $gitWorkspace = @"
+    {
+        "folders": [
+          {
+            "path": "C:\\Git"
+          }
+        ],
+    }
+"@
+    Set-Content -Path C:\Git\git.code-workspace -Value $gitWorkspace -Force
 }
 else {
     $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
@@ -85,30 +98,25 @@ else {
 # Copy profile
 'Updating PowerShell profiles...'
 $profileContent = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/profile.ps1' -UseBasicParsing).Content
-foreach ($proPath in @(
-        "$($env:userprofile)\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
-        "$($env:userprofile)\Documents\PowerShell\Microsoft.VSCode_profile.ps1"
-        "$($env:userprofile)\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
-        "$($env:userprofile)\Documents\WindowsPowerShell\Microsoft.VSCode_profile.ps1"
-    )) {
-
-    Remove-Item -Path $proPath -Force -ErrorAction SilentlyContinue | Out-Null
-    New-Item -Path $proPath -Force | Out-Null
-    Set-Content -Value $profileContent -Path $proPath | Out-Null
-}
+$profilePath = @(
+    "$env:USERPROFILE\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+    "$env:USERPROFILE\Documents\PowerShell\Microsoft.VSCode_profile.ps1"
+    "$env:USERPROFILE\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
+    "$env:USERPROFILE\Documents\WindowsPowerShell\Microsoft.VSCode_profile.ps1"
+)
+New-Item -Path $profilePath -Force | Out-Null
+Set-Content -Value $profileContent -Path $profilePath | Out-Null
 
 # AlexFranco module
 'Updating AlexFranco.psm1...'
 $moduleContent = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/AlexFranco.psm1' -UseBasicParsing).Content
-$modulePath = "$env:USERPROFILE\Documents\PowerShell\Modules\AlexFranco\AlexFranco.psm1"
-Remove-Item -Path $modulePath -Force -ErrorAction SilentlyContinue | Out-Null
+$modulePath = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\AlexFranco\AlexFranco.psm1", "$env:USERPROFILE\Documents\PowerShell\Modules\AlexFranco\AlexFranco.psm1"
 New-Item -Path $modulePath -Force | Out-Null
 Set-Content -Path $modulePath -Value $moduleContent | Out-Null
 
 # Microsoft Terminal settings
 'Updating Microsoft Terminal settings...'
 $terminalSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/settings.json' -UseBasicParsing).Content
-$settingsPath = Resolve-Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json"
-Remove-Item -Path $settingsPath -Force -ErrorAction SilentlyContinue | Out-Null
+$settingsPath = (Resolve-Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\").Path + "settings.json"
 New-Item -Path $settingsPath -Force | Out-Null
 Set-Content -Path $settingsPath -Value $terminalSettings | Out-Null
