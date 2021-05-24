@@ -41,9 +41,11 @@ if ($FirstRun) {
     # PowerShell modules
     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
     Install-PackageProvider -Name NuGet -Force
-    Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
 
+    Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
     Install-Module -Name PSReadLine -AllowPrerelease -Force
+    Install-Module -Name Oh-My-Posh -Scope CurrentUser
+
     $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
 
     $moduleList | ForEach-Object {
@@ -120,3 +122,9 @@ $terminalSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlex
 $settingsPath = (Resolve-Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\").Path + "settings.json"
 New-Item -Path $settingsPath -Force | Out-Null
 Set-Content -Path $settingsPath -Value $terminalSettings | Out-Null
+
+# Oh-my-posh
+$themeSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/.material.json' -UseBasicParsing).Content
+$themePath = "$env:USERPROFILE\.material.json"
+New-Item -Path $themePath -Force | Out-Null
+Set-Content -Path $themePath -Value $themeSettings | Out-Null
