@@ -124,6 +124,7 @@ New-Item -Path $settingsPath -Force | Out-Null
 Set-Content -Path $settingsPath -Value $terminalSettings | Out-Null
 
 # Oh-my-posh
+'Updating Oh-My-Posh settings...'
 $themeSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/.material.json' -UseBasicParsing).Content
 $themePath = "$env:USERPROFILE\.material.json"
 New-Item -Path $themePath -Force | Out-Null

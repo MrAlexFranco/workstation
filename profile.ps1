@@ -20,4 +20,3 @@ New-Item -Path Env:\ -Name DEV -Value "$env:USERPROFILE\OneDrive - Franco.dev\de
 Set-Alias -Name ~ -Value $env:USERPROFILE
 
 Set-Location $env:DEV
-
