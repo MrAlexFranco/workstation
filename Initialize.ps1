@@ -118,7 +118,7 @@ Set-Content -Path $modulePath -Value $moduleContent | Out-Null
 
 # Microsoft Terminal settings
 'Updating Microsoft Terminal settings...'
-$terminalSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/settings.json' -UseBasicParsing).Content
+$terminalSettings = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/terminalsettings.json' -UseBasicParsing).Content
 $settingsPath = (Resolve-Path "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\").Path + "settings.json"
 New-Item -Path $settingsPath -Force | Out-Null
 Set-Content -Path $settingsPath -Value $terminalSettings | Out-Null
