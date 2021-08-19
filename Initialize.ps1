@@ -94,8 +94,42 @@ if ($FirstRun) {
     }
 "@
     Set-Content -Path C:\Git\git.code-workspace -Value $gitWorkspace -Force
-}
-else {
+} else {
+    # $list = winget list
+    # $columns = $list | ? { $_ -like 'Name*' }
+    # $nameCol = if ($columns -match '(Name\s*)\S') { $Matches[1].Length - 1 }
+    # $idCol = if ($columns -match '(id\s*)\S') { $Matches[1].Length - 1 }
+    # $versionCol = if ($columns -match '(version\s*)\S') { $Matches[1].Length - 1 }
+    # $availableCol = if ($columns -match '(available\s*)\S') { $Matches[1].Length - 1 }
+    # $sourceCol = if ($columns -match '(Source\s?)') { $Matches[1].Length - 1 }
+
+    # $nameX = 0; $nameY = $nameCol
+    # $idX = $nameY + 1; $idY = $idX + $idCol
+    # $versionX = $idY + 1; $versionY = $versionX + $versionCol
+    # $availableX = $versionY + 1; $availableY = $availableX + $availableCol
+    # $sourceX = $availableY + 1; $sourceY = $sourceX + $sourceCol
+
+    # $WingetList = $list | foreach {
+    #     $line = $_
+
+    #     if ($null -ne $line) {
+
+    #         $name = $line[$nameX..$nameY] -join ''
+    #         $id = $line[$idX..$idY] -join ''
+    #         $version = $line[$versionX..$versionY] -join ''
+    #         $available = $line[$availableX..$availableY] -join ''
+    #         $source = $line[$sourceX..$sourceY] -join ''
+
+    #         return [PSCustomObject]@{
+    #             Name      = $name
+    #             Id        = $id
+    #             Version   = $version
+    #             Available = $available
+    #             Source    = $source
+    #         }
+    #     }
+    # }
+
     $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 }
 
