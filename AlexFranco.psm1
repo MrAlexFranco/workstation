@@ -203,11 +203,11 @@ function Get-MACVendor {
 
 Function Get-Telnet {
     Param (
-        [Parameter(Mandatory, ValueFromPipeline = $true)]
-        [String[]]$Commands,
-
         [Parameter(Mandatory)]
         [string]$RemoteHost,
+
+        [Parameter(Mandatory, ValueFromPipeline = $true)]
+        [String[]]$Commands,
 
         [string]$Port = "23",
         [int]$WaitTime = 1000,
