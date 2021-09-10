@@ -99,6 +99,11 @@ else {
     $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 }
 
+# Update Sysinternals Suite
+Invoke-WebRequest -Uri https://download.sysinternals.com/files/SysinternalsSuite.zip -Method Get -OutFile $env:USERPROFILE\Downloads\SysinternalsSuite.zip | Out-Null
+New-Item -Path C:\PSTools -ItemType Directory -Force | Out-Null
+Expand-Archive $env:USERPROFILE\Downloads\SysinternalsSuite.zip -DestinationPath C:\PSTools\ -Force | Out-Null
+
 # Copy profile
 'Updating PowerShell profiles...'
 $profileContent = (Invoke-WebRequest 'https://raw.githubusercontent.com/MrAlexFranco/workstation/master/profile.ps1' -UseBasicParsing).Content
