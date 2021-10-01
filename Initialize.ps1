@@ -22,7 +22,7 @@ $apps = @(
     'Notepad++.Notepad++'
     'OpenShot.OpenShot'
     'PuTTY.PuTTY'
-    'Python.Python'
+    'Python.Python.3'
     'ProtonTechnologies.ProtonVPN'
     'VideoLAN.VLC'
     'Win32diskimager.win32diskimager'
@@ -31,32 +31,55 @@ $apps = @(
 
 if ($FirstRun) {
     # Winget
-    $apps | ForEach-Object { winget install $_ }
+    $apps | ForEach-Object { winget install --id $_ }
 
     # Install the PowerLine fonts that make my prompt look nifty
     Set-Location $env:USERPROFILE
-    git clone 'https://github.com/powerline/fonts.git'
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -Command { Start-Process -FilePath 'C:\Program Files\Git\cmd\git.exe' -ArgumentList 'clone', 'https://github.com/powerline/fonts.git' }
     Push-Location fonts
-    & .\install.ps1 -FontName DejaVu*
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\install.ps1 -FontName DejaVu*
     Pop-Location
 
     # PowerShell modules
-    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-    Install-PackageProvider -Name NuGet -Force
+    # PowerShell v5.1
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -Command {
+        Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+        Install-PackageProvider -Name NuGet -Force
 
-    Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
-    Install-Module -Name PSReadLine -AllowPrerelease -Force
-    Install-Module -Name Oh-My-Posh -Scope CurrentUser
+        Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
+        Install-Module -Name PSReadLine -AllowPrerelease -Force
+        Install-Module -Name Oh-My-Posh -Scope CurrentUser
 
-    $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
+        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
 
-    $moduleList | ForEach-Object {
-        $moduleName = $_
-        Write-Host $moduleName
-    
-        Install-Module $moduleName
+        $moduleList | ForEach-Object {
+            $moduleName = $_
+            Write-Host $moduleName
+
+            Install-Module $moduleName
+        }
     }
+    
+    # PowerShell 7
+    $command = {
+        Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+        Install-PackageProvider -Name NuGet -Force
 
+        Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
+        Install-Module -Name PSReadLine -AllowPrerelease -Force
+        Install-Module -Name Oh-My-Posh -Scope CurrentUser
+
+        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
+
+        $moduleList | ForEach-Object {
+            $moduleName = $_
+            Write-Host $moduleName
+
+            Install-Module $moduleName
+        }
+    }
+    Start-Process 'C:\Program Files\PowerShell\7\pwsh.exe' -ArgumentList '-ExecutionPolicy Bypass', '-NoProfile', "-Command $command"
+    
     # RSAT
     $allFeatures = Get-WindowsCapability -Online
 
@@ -99,6 +122,7 @@ if ($FirstRun) {
 }
 
 # Update Sysinternals Suite
+'Updating Sysinternals Suite...'
 Invoke-WebRequest -Uri https://download.sysinternals.com/files/SysinternalsSuite.zip -Method Get -OutFile $env:USERPROFILE\Downloads\SysinternalsSuite.zip | Out-Null
 New-Item -Path C:\PSTools -ItemType Directory -Force | Out-Null
 Expand-Archive $env:USERPROFILE\Downloads\SysinternalsSuite.zip -DestinationPath C:\PSTools\ -Force | Out-Null
