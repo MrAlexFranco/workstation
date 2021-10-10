@@ -101,6 +101,30 @@ if ($FirstRun) {
     $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 }
 
+'Removing junk...'
+$remove = @(
+	'Microsoft.BingNews'
+	'Microsoft.BingWeather'
+	'Microsoft.GamingApp'
+	'Microsoft.GetHelp'
+	'Microsoft.Getstarted'
+	'Microsoft.MicrosoftSolitaireCollection'
+	'Microsoft.MicrosoftStickyNotes'
+	'Microsoft.People'
+	'Microsoft.Windows.PeopleExperienceHost'
+	'Microsoft.WindowsAlarms'
+	'Microsoft.WindowsFeedbackHub'
+	'Microsoft.WindowsMaps'
+	'Xbox'
+	'Microsoft.ZuneMusic'
+	'Microsoft.ZuneVideo'
+)
+
+$remove | ForEach-Object -Process {
+	$rmApp = $_
+	Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $rmApp } | Remove-AppxPackage -AllUsers -Confirm:$false -ErrorAction SilentlyContinue -Verbose 
+}
+
 # Update Sysinternals Suite
 'Updating Sysinternals Suite...'
 Invoke-WebRequest -Uri https://download.sysinternals.com/files/SysinternalsSuite.zip -Method Get -OutFile $env:USERPROFILE\Downloads\SysinternalsSuite.zip | Out-Null
