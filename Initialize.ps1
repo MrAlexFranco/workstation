@@ -36,31 +36,9 @@ if ($FirstRun) {
     # Install the PowerLine fonts that make my prompt look nifty
     Set-Location $env:USERPROFILE
     powershell.exe -ExecutionPolicy Bypass -NoProfile -Command { Start-Process -FilePath 'C:\Program Files\Git\cmd\git.exe' -ArgumentList 'clone', 'https://github.com/powerline/fonts.git' }
-    Push-Location fonts
-    powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\install.ps1 -FontName DejaVu*
-    Pop-Location
-
-    # PowerShell modules
-    # PowerShell v5.1
-    powershell.exe -ExecutionPolicy Bypass -NoProfile -Command {
-        Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-        Install-PackageProvider -Name NuGet -Force
-
-        Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
-        Install-Module -Name PSReadLine -AllowPrerelease -Force
-        Install-Module -Name Oh-My-Posh -Scope CurrentUser
-
-        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
-
-        $moduleList | ForEach-Object {
-            $moduleName = $_
-            Write-Host $moduleName
-
-            Install-Module $moduleName
-        }
-    }
+    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "$env:USERPROFILE\fonts\install.ps1" -FontName DejaVu*
     
-    # PowerShell 7
+    # PowerShell modules
     $command = {
         Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
         Install-PackageProvider -Name NuGet -Force
@@ -78,6 +56,8 @@ if ($FirstRun) {
             Install-Module $moduleName
         }
     }
+    
+    Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass', '-NoProfile', "-Command $command"
     Start-Process 'C:\Program Files\PowerShell\7\pwsh.exe' -ArgumentList '-ExecutionPolicy Bypass', '-NoProfile', "-Command $command"
     
     # RSAT
