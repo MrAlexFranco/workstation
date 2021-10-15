@@ -24,6 +24,7 @@ $apps = @(
     'PuTTY.PuTTY'
     'Python.Python.3'
     'ProtonTechnologies.ProtonVPN'
+    'SysInternals'
     'VideoLAN.VLC'
     'Win32diskimager.win32diskimager'
     'WiresharkFoundation.Wireshark'
@@ -124,12 +125,6 @@ $remove | ForEach-Object -Process {
 	$rmApp = $_
 	Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $rmApp } | Remove-AppxPackage -AllUsers -Confirm:$false -ErrorAction SilentlyContinue -Verbose 
 }
-
-# Update Sysinternals Suite
-'Updating Sysinternals Suite...'
-Invoke-WebRequest -Uri https://download.sysinternals.com/files/SysinternalsSuite.zip -Method Get -OutFile $env:USERPROFILE\Downloads\SysinternalsSuite.zip | Out-Null
-New-Item -Path C:\PSTools -ItemType Directory -Force | Out-Null
-Expand-Archive $env:USERPROFILE\Downloads\SysinternalsSuite.zip -DestinationPath C:\PSTools\ -Force | Out-Null
 
 # Copy profile
 'Updating PowerShell profiles...'
