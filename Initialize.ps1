@@ -48,7 +48,7 @@ if ($FirstRun) {
         Install-Module -Name PSReadLine -AllowPrerelease -Force
         Install-Module -Name Oh-My-Posh -Scope CurrentUser
 
-        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline'
+        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore'
 
         $moduleList | ForEach-Object {
             $moduleName = $_
@@ -123,7 +123,8 @@ $remove = @(
 
 $remove | ForEach-Object -Process {
 	$rmApp = $_
-	Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $rmApp } | Remove-AppxPackage -AllUsers -Confirm:$false -ErrorAction SilentlyContinue -Verbose 
+	"Removing $rmApp..."
+	Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $rmApp } | Remove-AppxPackage -AllUsers -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 }
 
 # Copy profile
