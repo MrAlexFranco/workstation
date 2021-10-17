@@ -199,7 +199,6 @@ function Get-MACVendor {
        1.0             Initial Release
 .LINK
     http://community.spiceworks.com/scripts/show/1887-get-telnet-telnet-to-a-device-and-issue-commands
-#>
 
 Function Get-Telnet {
     Param (
@@ -249,3 +248,4 @@ Function Get-Telnet {
 
     return $Result
 }
+#>
