@@ -48,7 +48,7 @@ if ($FirstRun) {
         Install-Module -Name PSReadLine -AllowPrerelease -Force
         Install-Module -Name Oh-My-Posh -Scope CurrentUser
 
-        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore'
+        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore', 'Az.KeyVault'
 
         $moduleList | ForEach-Object {
             $moduleName = $_
