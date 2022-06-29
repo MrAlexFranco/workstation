@@ -33,33 +33,28 @@ $apps = @(
 if ($FirstRun) {
     # Winget
     $apps | ForEach-Object { winget install --id $_ }
-
-    # Install the PowerLine fonts that make my prompt look nifty
-    Set-Location $env:USERPROFILE
-    powershell.exe -ExecutionPolicy Bypass -NoProfile -Command { Start-Process -FilePath 'C:\Program Files\Git\cmd\git.exe' -ArgumentList 'clone', 'https://github.com/powerline/fonts.git' }
-    powershell.exe -ExecutionPolicy Bypass -NoProfile -File "$env:USERPROFILE\fonts\install.ps1" -FontName DejaVu*
     
     # PowerShell modules
     $command = {
-        Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-        Install-PackageProvider -Name NuGet -Force
+        Set-PSRepository -Name 'PSGallery' -InstallationPolicy 'Trusted'
+        Install-PackageProvider -Name 'NuGet' -Force
 
-        Install-Module -Name PowerShellGet -RequiredVersion 2.2.5
-        Install-Module -Name PSReadLine -AllowPrerelease -Force
-        Install-Module -Name Oh-My-Posh -Scope CurrentUser
+        Update-Module -Name 'PowerShellGet' -Force
+        Update-Module -Name 'PSReadLine' -Force
+        Install-Module -Name 'Oh-My-Posh' -Scope 'CurrentUser' -Force
 
-        $moduleList = 'ImportExcel', 'KaceSMA', 'Posh-SSH', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore', 'Az.KeyVault'
+        $moduleList = 'ImportExcel', 'KaceSMA', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore', 'Az.KeyVault'
 
         $moduleList | ForEach-Object {
             $moduleName = $_
             Write-Host $moduleName
 
-            Install-Module $moduleName
+            Install-Module $moduleName -Force
         }
     }
     
     Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass', '-NoProfile', "-Command $command"
-    Start-Process 'C:\Program Files\PowerShell\7\pwsh.exe' -ArgumentList '-ExecutionPolicy Bypass', '-NoProfile', "-Command $command"
+    Start-Process pwsh.exe -ArgumentList '-ExecutionPolicy Bypass', '-NoProfile', "-Command $command"
     
     # RSAT
     $allFeatures = Get-WindowsCapability -Online
