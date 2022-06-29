@@ -34,6 +34,9 @@ if ($FirstRun) {
     # Winget
     $apps | ForEach-Object { winget install --id $_ }
     
+    # Oh-my-posh
+    winget install JanDeDobbeleer.OhMyPosh -s winget
+    
     # PowerShell modules
     $command = {
         Set-PSRepository -Name 'PSGallery' -InstallationPolicy 'Trusted'
