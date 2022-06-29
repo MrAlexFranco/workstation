@@ -1,10 +1,13 @@
 {
+    "$help": "https://aka.ms/terminal-documentation",
     "$schema": "https://aka.ms/terminal-profiles-schema",
-    "actions": 
-    [
+    "actions": [
         {
-            "command": 
-            {
+            "command": "paste",
+            "keys": "ctrl+v"
+        },
+        {
+            "command": {
                 "action": "copy",
                 "singleLine": false
             },
@@ -15,12 +18,7 @@
             "keys": "ctrl+shift+f"
         },
         {
-            "command": "paste",
-            "keys": "ctrl+v"
-        },
-        {
-            "command": 
-            {
+            "command": {
                 "action": "splitPane",
                 "split": "auto",
                 "splitMode": "duplicate"
@@ -31,20 +29,13 @@
     "copyFormatting": "none",
     "copyOnSelect": true,
     "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
-    "profiles": 
-    {
-        "defaults": 
-        {
-            "background": "#000000",
+    "launchMode": "maximized",
+    "profiles": {
+        "defaults": {
             "cursorShape": "vintage",
-            "font": 
-            {
-                "face": "DejaVu Sans Mono for Powerline",
-                "size": 12
-            }
+            "elevate": true
         },
-        "list": 
-        [
+        "list": [
             {
                 "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
                 "hidden": false,
@@ -52,21 +43,19 @@
                 "source": "Windows.Terminal.PowershellCore"
             },
             {
-                "commandline": "powershell.exe",
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "hidden": false,
                 "name": "Windows PowerShell"
             },
             {
-                "commandline": "cmd.exe",
-                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-                "name": "cmd",
-                "startingDirectory": "C:\\PSTools"
+                "commandline": "powershell.exe -NoExit -Command Import-Module ExchangeOnlineManagement; Connect-ExchangeOnline -UserPrincipalName ('{0}@{1}' -f $env:USERNAME, $env:USERDNSDOMAIN) -ShowProgress $true",
+                "guid": "{81bdb789-dced-49ea-9d08-2db2a0aeb81d}",
+                "name": "WECI Exchange Online"
             },
             {
-                "commandline": "python.exe",
-                "guid": "{1850e97f-16dc-4281-9ea9-0100c4e852c5}",
-                "icon": "\ud83d\udc0d",
-                "name": "Python"
+                "commandline": "powershell.exe -NoExit -Command Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ('http://{0}/PowerShell' -f (Resolve-DnsName (Resolve-DnsName relay | select -ExpandProperty IPAddress)).NameHost) -Authentication Kerberos -Credential (Get-Secret -Name 'afranco@weci.net(PSCredential)') ) -DisableNameChecking",
+                "guid": "{51fb8f91-9dd2-456b-b7a6-f85923b6f895}",
+                "name": "WECI Exchange On-Prem"
             },
             {
                 "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
@@ -75,19 +64,25 @@
                 "source": "Windows.Terminal.Azure"
             },
             {
-                "commandline": "powershell.exe -noexit -command Import-Module ExchangeOnlineManagement; Connect-ExchangeOnline -UserPrincipalName ('{0}@{1}' -f $env:USERNAME, $env:USERDNSDOMAIN) -ShowProgress $true",
-                "guid": "{81bdb789-dced-49ea-9d08-2db2a0aeb81d}",
-                "name": "Exchange Online"
+                "guid": "{57efe5d8-1dab-5f8d-9363-415e95c2ebb7}",
+                "hidden": false,
+                "name": "Developer PowerShell for VS 2022 [Preview]",
+                "source": "Windows.Terminal.VisualStudio"
             },
             {
-                "commandline": "powershell.exe -noexit -command Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ('http://{0}/PowerShell' -f (Resolve-DnsName (Resolve-DnsName relay | select -ExpandProperty IPAddress)).NameHost) -Authentication Kerberos -Credential (Import-Clixml C:\\Scripts\\pw.xml)) -DisableNameChecking",
-                "guid": "{51fb8f91-9dd2-456b-b7a6-f85923b6f895}",
-                "name": "Exchange On-Prem"
+                "guid": "{bfafe94b-f670-5a77-8cac-d21832cef956}",
+                "hidden": false,
+                "name": "Developer Command Prompt for VS 2022 [Preview]",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "hidden": false,
+                "name": "Command Prompt"
             }
         ]
     },
-    "schemes": 
-    [
+    "schemes": [
         {
             "background": "#0C0C0C",
             "black": "#0C0C0C",
@@ -295,7 +290,5 @@
             "white": "#C0C0C0",
             "yellow": "#808000"
         }
-    ],
-    "startOnUserLogin": true,
-    "theme": "dark"
+    ]
 }
