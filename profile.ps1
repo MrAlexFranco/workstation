@@ -1,7 +1,7 @@
 Clear-Host
 
-#Region Custom Prompt
-Set-PoshPrompt -Theme $env:USERPROFILE\.material.json
+# Region Custom Prompt
+oh-my-posh init pwsh --config $env:USERPROFILE\.material.json | Invoke-Expression
 
 # Remove curl alias so it won't interfere with installed curl
 Remove-Item -Path Alias:\curl -Force -ErrorAction SilentlyContinue
