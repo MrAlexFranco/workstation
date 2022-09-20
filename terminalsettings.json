@@ -1,24 +1,27 @@
 {
     "$help": "https://aka.ms/terminal-documentation",
     "$schema": "https://aka.ms/terminal-profiles-schema",
-    "actions": [
+    "actions": 
+    [
         {
-            "command": "paste",
-            "keys": "ctrl+v"
-        },
-        {
-            "command": {
+            "command": 
+            {
                 "action": "copy",
                 "singleLine": false
             },
             "keys": "ctrl+c"
         },
         {
+            "command": "paste",
+            "keys": "ctrl+v"
+        },
+        {
             "command": "find",
             "keys": "ctrl+shift+f"
         },
         {
-            "command": {
+            "command": 
+            {
                 "action": "splitPane",
                 "split": "auto",
                 "splitMode": "duplicate"
@@ -30,12 +33,15 @@
     "copyOnSelect": true,
     "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
     "launchMode": "maximized",
-    "profiles": {
-        "defaults": {
+    "profiles": 
+    {
+        "defaults": 
+        {
             "cursorShape": "vintage",
             "elevate": true
         },
-        "list": [
+        "list": 
+        [
             {
                 "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
                 "hidden": false,
@@ -48,7 +54,7 @@
                 "name": "Windows PowerShell"
             },
             {
-                "commandline": "powershell.exe -NoExit -Command Import-Module ExchangeOnlineManagement; Connect-ExchangeOnline -UserPrincipalName ('{0}@{1}' -f $env:USERNAME, $env:USERDNSDOMAIN) -ShowProgress $true",
+                "commandline": "pwsh.exe -NoExit -Command Import-Module ExchangeOnlineManagement; Connect-ExchangeOnline -UserPrincipalName ('{0}@{1}' -f $env:USERNAME, $env:USERDNSDOMAIN) -ShowProgress $true",
                 "guid": "{81bdb789-dced-49ea-9d08-2db2a0aeb81d}",
                 "name": "WECI Exchange Online"
             },
@@ -79,10 +85,17 @@
                 "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
                 "hidden": false,
                 "name": "Command Prompt"
+            },
+            {
+                "guid": "{5fb123f1-af88-5b5c-8953-d14a8def1978}",
+                "hidden": false,
+                "name": "PowerShell 7",
+                "source": "Windows.Terminal.PowershellCore"
             }
         ]
     },
-    "schemes": [
+    "schemes": 
+    [
         {
             "background": "#0C0C0C",
             "black": "#0C0C0C",
