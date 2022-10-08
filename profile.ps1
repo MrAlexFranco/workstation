@@ -16,7 +16,7 @@ $PSreadLineOption = @{
 Set-PSReadLineOption @PSReadLineOption
 
 # Set Vars
-New-Item -Path Env:\ -Name DEV -Value "$env:USERPROFILE\OneDrive - Franco.dev\dev" -Force | Out-Null
+New-Item -Path Env:\ -Name 'CODE' -Value "$env:USERPROFILE\OneDrive - Franco.dev\Code" -Force | Out-Null
 Set-Alias -Name ~ -Value $env:USERPROFILE
 
-Set-Location $env:DEV
+Set-Location $env:CODE
