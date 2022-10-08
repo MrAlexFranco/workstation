@@ -42,7 +42,6 @@ if ($FirstRun) {
 
         Update-Module -Name 'PowerShellGet' -Force
         Update-Module -Name 'PSReadLine' -Force
-        Install-Module -Name 'Oh-My-Posh' -Scope 'CurrentUser' -Force
 
         $moduleList = 'ImportExcel', 'KaceSMA', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore', 'Microsoft.Graph', 'AzureAD', 'Az.KeyVault', 'PSWriteWord'
 
