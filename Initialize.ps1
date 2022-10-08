@@ -12,13 +12,11 @@ $apps = @(
     'DominikReichl.KeePass'
     'GIMP.GIMP'
     'Git.Git'
-    'Google.Chrome'
     'Insecure.Nmap'
     'Microsoft.PowerShell'
     'Microsoft.PowerToys'
     'Microsoft.VisualStudioCode'
     'Microsoft.WindowsTerminal'
-    'Mozilla.FireFox'
     'Notepad++.Notepad++'
     'OpenShot.OpenShot'
     'PuTTY.PuTTY'
@@ -46,7 +44,7 @@ if ($FirstRun) {
         Update-Module -Name 'PSReadLine' -Force
         Install-Module -Name 'Oh-My-Posh' -Scope 'CurrentUser' -Force
 
-        $moduleList = 'ImportExcel', 'KaceSMA', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore', 'Az.KeyVault'
+        $moduleList = 'ImportExcel', 'KaceSMA', 'MSOnline', 'Microsoft.PowerShell.SecretManagement', 'Microsoft.PowerShell.SecretStore', 'Az.KeyVault', 'PSWriteWord'
 
         $moduleList | ForEach-Object {
             $moduleName = $_
