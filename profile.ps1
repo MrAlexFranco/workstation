@@ -20,3 +20,10 @@ New-Item -Path Env:\ -Name 'CODE' -Value "$env:USERPROFILE\OneDrive - Franco.dev
 Set-Alias -Name ~ -Value $env:USERPROFILE
 
 Set-Location $env:CODE
+
+# $PSDefaultParameterValues
+$PSDefaultParameterValues.Add('Format-Table:AutoSize', $true)
+
+if ($env:USERDNSDOMAIN -and $env:USERDNSDOMAIN -eq 'WECI.NET') {
+    $PSDefaultParameterValues.Add('*:Credential', (Get-Secret -Name 'afranco-admin(PSCredential)'))    
+}
