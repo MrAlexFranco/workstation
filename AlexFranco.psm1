@@ -93,7 +93,8 @@ function ping2 {
             if (!$Quiet) { [Console]::Beep() }
         } else {
             Write-Host -NoNewline '.'
-        }    
+        }
+        Start-Sleep -Seconds 1
     }
 }
 
