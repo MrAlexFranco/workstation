@@ -83,7 +83,9 @@ function ping2 {
         [Parameter(Mandatory)]
         $ComputerName,
         [Switch]
-        $Quiet = $false
+        $Quiet = $false,
+        [Int]
+        $Delay = 1
     )
 
     while ($true) {
@@ -94,7 +96,7 @@ function ping2 {
         } else {
             Write-Host -NoNewline '.'
         }
-        Start-Sleep -Seconds 1
+        Start-Sleep -Seconds $Delay
     }
 }
 
