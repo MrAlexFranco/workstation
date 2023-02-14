@@ -81,14 +81,16 @@ function Test-Network {
 function ping2 {
     param (
         [Parameter(Mandatory)]
-        $ComputerName
+        $ComputerName,
+        [Switch]
+        $Quiet = $false
     )
 
     while ($true) {
         $ping = Test-Connection $ComputerName -Count 1 -Quiet
         if ($ping) {
             Write-Host -NoNewline '!'
-            [Console]::Beep()
+            if (!$Quiet) { [Console]::Beep() }
         } else {
             Write-Host -NoNewline '.'
         }    
