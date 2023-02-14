@@ -25,5 +25,5 @@ Set-Location $env:CODE
 $PSDefaultParameterValues.Add('Format-Table:AutoSize', $true)
 
 if ($env:USERDNSDOMAIN -and $env:USERDNSDOMAIN -eq 'WECI.NET') {
-    $PSDefaultParameterValues.Add('*:Credential', (Get-Secret -Name 'afranco-admin(PSCredential)'))    
+    #
 }
