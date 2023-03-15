@@ -22,7 +22,7 @@
     "profiles": {
         "defaults": {
             "cursorShape": "vintage",
-            "elevate": true
+            "elevate": false
         },
         "list": [
             {
