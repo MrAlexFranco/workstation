@@ -19,7 +19,7 @@ Set-PSReadLineOption @PSReadLineOption
 New-Item -Path Env:\ -Name 'CODE' -Value "$env:USERPROFILE\OneDrive - Franco.dev\Code" -Force | Out-Null
 Set-Alias -Name ~ -Value $env:USERPROFILE
 
-if (Get-Secret -Name 'OpenAIKey') { $env:OpenAIKey = (Get-Secret -Name 'OpenAIKey' | ConvertFrom-SecureString -AsPlainText) }
+if (Get-Secret -Name 'OpenAIKey') { $env:OpenAIKey = Get-Secret -Name 'OpenAIKey' -AsPlainText }
 
 Set-Location $env:CODE
 
