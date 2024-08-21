@@ -127,3 +127,65 @@ function Get-MACVendor {
 
     return $request
 }
+
+function Send-Email {
+    [CmdletBinding()]
+    param (
+        [string[]]$To,
+        [string[]]$CC,
+        [string[]]$BCC,
+        [string]$From,
+        [string]$Subject,
+        [string]$Body,
+        [string[]]$Attachments,
+        [bool]$BodyAsHtml,
+        [string]$SmtpServer,
+        [int]$Port
+    )
+
+    # Construct message
+    $Message = New-Object System.Net.Mail.MailMessage
+
+    $To | ForEach-Object -Process {
+        $Message.To.Add($_)
+    }
+
+    if ($CC) {
+        $CC | ForEach-Object -Process {
+            $Message.CC.Add($_)
+        }
+    }
+
+    if ($BCC) {
+        $BCC | ForEach-Object -Process {
+            $Message.BCC.Add($_)
+        }
+    }
+
+    $Message.From = $From
+    $Message.Subject = $Subject
+    $Message.Body = $Body
+    $Message.IsBodyHtml = if ($BodyAsHtml) { $BodyAsHtml } else { $false }
+
+    if ($Attachments) {
+        $Attachments | ForEach-Object -Process {
+            $Attachment = New-Object System.Net.Mail.Attachment($_)
+            $Message.Attachments.Add($Attachment)
+        }
+    }
+
+    # Construct SMTP client
+    $Client = New-Object System.Net.Mail.SmtpClient
+    $Client.Host = if ($SmtpServer) { $SmtpServer } else { "relay.weci.net" }
+    $Client.Port = if ($Port) { $Port } else { 25 }
+    $Client.EnableSsl = $false
+
+    try {
+        $Client.Send($Message)
+        $Client.Dispose()
+        $Message.Dispose()
+    }
+    catch {
+        Write-Error -Message $_.Exception.Message
+    }
+}
