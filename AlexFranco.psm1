@@ -189,3 +189,28 @@ function Send-Email {
         Write-Error -Message $_.Exception.Message
     }
 }
+
+function Test-SSLCertificate {
+    [CmdletBinding()]
+    param(
+        [String]$Server,
+        [int]$Port
+    )
+
+    if (!(Test-Path -Path "C:\Program Files\Git\usr\bin\openssl.exe")) {
+        throw "OpenSSL not found at 'C:\Program Files\Git\usr\bin\openssl.exe'"
+    }
+
+    $OpenSSL = @{
+        FilePath     = "C:\Program Files\Git\usr\bin\openssl.exe"
+        ArgumentList = @(
+            "s_client"
+            "-no-interactive"
+            "-connect $Server`:$Port"
+        )
+        Wait         = $true
+        NoNewWindow  = $true
+    }
+    
+    Start-Process @OpenSSL
+}
