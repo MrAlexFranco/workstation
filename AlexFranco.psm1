@@ -214,3 +214,71 @@ function Test-SSLCertificate {
     
     Start-Process @OpenSSL
 }
+
+function Add-DigitalSignature {
+    [CmdletBinding()]
+    param(
+        [String]$FilePath,
+        [string]$SignToolPath = "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe"
+    )
+
+    # Check for SignTool
+    if (!(Test-Path -Path $SignToolPath)) {
+        Write-Host "SignTool.exe not found at $SignToolPath." -ForegroundColor Yellow
+        Write-Host "- Searching for SignTool.exe. . . " -NoNewline
+
+        @(
+            "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe"            
+            "C:\Program Files (x86)\Windows Kits\10\Tools\bin\i386\signtool.exe"
+        ) | ForEach-Object -Process {
+            if (Test-Path -Path $_) {
+                $SignToolPath = $_
+                Write-Host "OK" -ForegroundColor Green
+                Write-Host "- SignTool.exe found at $SignToolPath."
+                break
+            }
+        }
+    }
+
+    # Digital signature
+    ## Get the code signing certificate
+    $CertStore = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Store -ArgumentList "My", "CurrentUser"
+    $CertStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadOnly)
+    $CertCollection = $CertStore.Certificates.Find([System.Security.Cryptography.X509Certificates.X509FindType]::FindByExtension, "Enhanced Key Usage", $true)
+    $CertStore.Close()
+
+    $Cert = $CertCollection | Where-Object { $_.EnhancedKeyUsageList.FriendlyName -eq "Code Signing" }
+    if (-not (Test-Certificate -Cert $Cert)) {
+        throw @"
+Code Signing certificate in CurrentUser X509 store not found or not valid.
+    `$CertStore = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Store -ArgumentList "My", "CurrentUser"
+    `$CertStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadOnly)
+    `$CertCollection = `$CertStore.Certificates.Find([System.Security.Cryptography.X509Certificates.X509FindType]::FindByExtension, "Enhanced Key Usage", `$true)
+    `$CertStore.Close()
+
+    `$Cert = `$CertCollection | Where-Object { `$_.EnhancedKeyUsageList.FriendlyName -eq "Code Signing" }
+
+    (Test-Certificate -Cert `$Cert) = `$false
+"@
+        break
+    }
+
+    # Sign the executable
+    $SignToolParams = @{
+        FilePath     = $SignToolPath
+        ArgumentList = @(
+            "sign"
+            "/a"
+            "/s MY"
+            "/sha1 $($Cert.Thumbprint)"
+            "/fd certHash"        
+            "/t http://timestamp.digicert.com"
+            "/v"
+            "`"$FilePath`""
+        )
+        Wait         = $true
+        NoNewWindow  = $true
+    }
+
+    Start-Process @SignToolParams
+}
