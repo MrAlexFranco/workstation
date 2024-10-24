@@ -282,3 +282,90 @@ Code Signing certificate in CurrentUser X509 store not found or not valid.
 
     Start-Process @SignToolParams
 }
+
+function Compare-Xml {
+    param(
+        [System.Xml.XmlNode]$DifferenceObject,
+        [System.Xml.XmlNode]$ReferenceObject,
+        [Switch]$Quiet = $false
+    )
+
+    $DifferenceCount = 0
+
+    if ($DifferenceObject.Name -ne $ReferenceObject.Name) {
+        Write-Host "- Name mismatch"
+        Write-Host "  - Reference: $($ReferenceObject.Name)"
+        Write-Host "  - Difference: $($DifferenceObject.Name)"
+        $DifferenceCount++
+        Write-Host "`r`n"
+    }
+
+    # Attributes
+    if ($DifferenceObject.Attributes.Count -ne $ReferenceObject.Attributes.Count) {
+        Write-Host "- Attribute count mismatch"
+        Write-Host "  - Reference: $($ReferenceObject.Attributes.Count)"
+        Write-Host "  - Difference: $($DifferenceObject.Attributes.Count)"
+        $DifferenceCount++
+        Write-Host "`r`n"
+    }
+
+    for ($i = 0; $i -lt $ReferenceObject.Attributes.Count; $i++) {
+        if ($ReferenceObject.Attributes[$i].Name -ne $DifferenceObject.Attributes[$i].Name) {
+            Write-Host "- Attribute name mismatch"
+            Write-Host "  - Reference: $($ReferenceObject.Attributes[$i].Name)"
+            Write-Host "  - Difference: $($ReferenceObject.Attributes[$i].Name)"
+            $DifferenceCount++
+            Write-Host "`r`n"
+        }
+        if ($ReferenceObject.Attributes[$i].Value -ne $DifferenceObject.Attributes[$i].Value) {
+            Write-Host "- Attribute value mismatch"
+            Write-Host "  - Reference: $($ReferenceObject.Attributes[$i].Value)"
+            Write-Host "  - Difference: $($ReferenceObject.Attributes[$i].Value)"
+            $DifferenceCount++
+            Write-Host "`r`n"
+        }
+    }
+    
+    # Children
+    if ($ReferenceObject.ChildNodes.Count -ne $DifferenceObject.ChildNodes.Count) {
+        Write-Host "- Child Node count mismatch"
+        Write-Host "  - Reference: $($ReferenceObject.ChildNodes.Count)"
+        Write-Host "  - Difference: $($DifferenceObject.ChildNodes.Count)"
+        $DifferenceCount++
+        Write-Host "`r`n"
+    }
+        
+    for ($i = 0; $i -lt $ReferenceObject.ChildNodes.Count; $i++) {
+        if (-not $DifferenceObject.ChildNodes[$i]) {
+            Write-Host "- Missing child node"
+            Write-Host "  - Reference: $($ReferenceObject.ChildNodes[$i].Name)"
+            Write-Host "  - Difference: Missing"
+            $DifferenceCount++
+            Write-Host "`r`n"
+        }
+
+        Compare-Xml -DifferenceObject $DifferenceObject.ChildNodes[$i] -ReferenceObject $ReferenceObject.ChildNodes[$i] -Quiet:$true
+    }
+    
+    if ($ReferenceObject.InnerText) {
+        if ($ReferenceObject.InnerText -ne $DifferenceObject.InnerText) {
+            Write-Host "- Inner Text mismatch"
+            Write-Host "  - Reference: $($ReferenceObject.InnerText)"
+            Write-Host "  - Difference: $($DifferenceObject.InnerText)"
+            $DifferenceCount++
+            Write-Host "`r`n"
+        }
+    }
+    elseif ($DifferenceObject.InnerText) {
+        Write-Host "Difference has inner text but expected does not for Differenc = " + $DifferenceObject.Name
+    }
+
+    if (-not $Quiet) {
+        if ($DifferenceCount -eq 0) {
+            Write-Host "No differences found"
+        }
+        else {
+            Write-Host "Found $DifferenceCount differences"
+        }
+    }
+}
