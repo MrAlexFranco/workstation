@@ -369,3 +369,132 @@ function Compare-Xml {
         }
     }
 }
+
+function New-CertificateSigningRequest {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $True)]
+        [string]$Subject,        
+        [Parameter(Mandatory = $True)]
+        [string[]]$SubjectAlternateName,
+        [Parameter(Mandatory = $True)]
+        [string]$Template,        
+        [Parameter(Mandatory = $True)]
+        [string]$Exportable,        
+        [bool]$ExportCertificate,
+        [string]$ExportPath,        
+        [securestring]$PfxPassword
+    )
+   
+    $ErrorActionPreference = 'Inquire'
+
+    ## Gathering Logic for SAN
+    $SAN = "{text}dns=$($SubjectAlternateName[0])"
+
+    if ($SubjectAlternateName.Count -gt 1) {
+        $SubjectAlternateName[1..$SubjectAlternateName.Count] | ForEach-Object -Process {
+            $SAN += "&dns=$_"
+        }
+    }
+
+    ## Required Because Powershell interprets $Windows as a variable not a string
+    $Windows = '$Windows'
+    # KeyUsage = 0xf0
+
+    $inputfiletemplate = @"
+[Version]
+Signature="$Windows NT$"
+
+[NewRequest]
+Subject = "CN=$Subject"
+Exportable = $Exportable
+KeyLength = 2048
+KeySpec = 1
+KeyUsage = 0xA0
+MachineKeySet = True
+ProviderName = "Microsoft RSA SChannel Cryptographic Provider"
+ProviderType = 12
+SMIME = FALSE
+RequestType = CMC
+
+[Strings] 
+szOID_SUBJECT_ALT_NAME2 = "2.5.29.17" 
+szOID_ENHANCED_KEY_USAGE = "2.5.29.37" 
+szOID_PKIX_KP_SERVER_AUTH = "1.3.6.1.5.5.7.3.1" 
+szOID_PKIX_KP_CLIENT_AUTH = "1.3.6.1.5.5.7.3.2"
+
+[Extensions] 
+%szOID_SUBJECT_ALT_NAME2% = "$SAN" 
+%szOID_ENHANCED_KEY_USAGE% = "{text}%szOID_PKIX_KP_SERVER_AUTH%,%szOID_PKIX_KP_CLIENT_AUTH%"
+
+[RequestAttributes] 
+CertificateTemplate=$Template
+"@
+
+    ### Gathering Certificate information ###
+    $filename = $Subject.Substring(0, 3)
+
+    ### Make allowance for wildcard CNs
+    if ($filename -like "*") {
+        Write-Host "Hang on...have to create a new filename..."
+        $filename = ( -join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ }))
+    }
+
+    $inputfiletemplate | Out-File "$filename.inf"
+
+    Write-Host "Generating request"
+
+    ### End of Gathering Certificate information ###
+
+    # Using Certreq to request a new certificate with information file and request
+    & "C:\Windows\System32\certreq.exe" "-new" "$filename.inf" "$filename.req"
+
+    # Submitting Request to CA with request and saving file as a .cer
+    $CertSubmitDateTime = Get-Date
+    Write-Host "Submitting request to CA"
+    & "C:\Windows\System32\certreq.exe" "-submit" "-config" "SCSRV82.weci.net\SubCa" "$filename.req" "$filename.cer"
+
+    # Accepting the certificate from SubCA
+    & "C:\Windows\System32\certreq.exe" "-accept" "$filename.cer"
+    Write-Host "Certificate Imported Successfully"
+
+    # File cleanup
+    Write-Host "Cleaning up files generated"
+    Remove-Item "$filename.*" -Force
+
+    # Asking if you would like to export the certificate 
+    if ($Exportable -eq $true -and $ExportCertificate -eq $true) {
+        if (-not $ExportPath) {
+            $ExportPath = ".\$Subject.pfx"
+        }
+        else {
+            $ExportDirectory = Split-Path -Path $ExportPath -Parent
+
+            if (-not (Test-Path -Path $ExportDirectory)) {
+                New-Item -Path $ExportDirectory -ItemType Directory | Out-Null
+            }
+        }
+        
+        #Show certifiate store 
+        Write-Host "Fetching Certificates in store for you..."
+        $CertStore = Get-ChildItem -Path "Cert:\LocalMachine\my" | Where-Object -FilterScript { $_.Subject -match $Subject -and $_.NotBefore -gt $CertSubmitDateTime.AddMinutes(-180) }
+
+        if ($CertStore.Count -eq 1) {
+            $CertChoice = $CertStore[0]
+        }
+        else {
+            $CertChoice = $CertStore | Select-Object -Property "Subject", "EnhancedKeyUsageList", "NotBefore", "NotAfter", "Thumbprint" | Out-GridView -PassThru
+        }
+
+        # Export certificate with password
+        $ExportParams = @{
+            Password    = if ($PfxPassword) { $PfxPassword } else { Read-Host -Prompt "Please type your password" -AsSecureString }
+            ChainOption = "BuildChain"
+            NoClobber   = $true
+            FilePath    = if ($ExportPath) { $ExportPath } else { Read-Host -Prompt "Give the PFX a filename with .pfx" }
+        }
+
+        if (-not (Split-Path -Path $ExportPath -Parent | Test-Path)) { New-Item -ItemType Directory -Force }
+        Get-ChildItem -Path "Cert:\LocalMachine\my\$($CertChoice.Thumbprint)" | Export-PfxCertificate @ExportParams
+    }
+}
