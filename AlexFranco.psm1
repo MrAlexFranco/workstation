@@ -498,3 +498,36 @@ CertificateTemplate=$Template
         Get-ChildItem -Path "Cert:\LocalMachine\my\$($CertChoice.Thumbprint)" | Export-PfxCertificate @ExportParams
     }
 }
+
+function Invoke-OracleQuery {
+    # https://devblogs.microsoft.com/scripting/use-oracle-odp-net-and-powershell-to-simplify-data-access/
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ODPPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ConnectionString,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Query
+    )
+
+    $resultSet = @()
+    try {
+        $OracleConnector = New-Object Oracle.ManagedDataAccess.Client.OracleConnection($ConnectionString)
+        $OracleCommand = $OracleConnector.CreateCommand()
+        $OracleCommand.CommandText = $Query
+
+        $resultSet = New-Object System.Data.DataTable
+        $OracleDataAdapter = New-Object Oracle.ManagedDataAccess.Client.OracleDataAdapter($OracleCommand)
+        [void]$OracleDataAdapter.Fill($resultSet)
+    }
+    catch {
+        Write-Error ($_.Exception.ToString())
+    }
+    finally {
+        if ($OracleConnector.State -eq 'Open') { $OracleConnector.Close() }
+    }
+    
+    $resultSet
+}
