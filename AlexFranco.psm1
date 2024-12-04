@@ -499,35 +499,60 @@ CertificateTemplate=$Template
     }
 }
 
-function Invoke-OracleQuery {
+function Invoke-OracleQuery {    
     # https://devblogs.microsoft.com/scripting/use-oracle-odp-net-and-powershell-to-simplify-data-access/
+    [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
-        [string]$ODPPath,
+        [Parameter(Mandatory)]
+        [String]$Query,
 
-        [Parameter(Mandatory = $true)]
-        [string]$ConnectionString,
+        [Parameter(Mandatory)]
+        [String]$DataSource,
 
-        [Parameter(Mandatory = $true)]
-        [string]$Query
+        [Parameter(Mandatory)]
+        [PSCredential]$Credential
     )
 
-    $resultSet = @()
+    # Load the Oracle assembly
+    $OraclePackage = Get-Package -Name "Oracle.ManagedDataAccess.Core" -ErrorAction SilentlyContinue
+    if ($OraclePackage) {
+        try {
+            $OraclePackagePath = Split-Path -Path $OraclePackage.Source -Parent
+            Get-ChildItem -Path $OraclePackagePath -Recurse -File -Filter "*.dll" | Select-Object -First 1 | ForEach-Object -Process { Add-Type -Path $_.FullName }
+        }
+        catch {
+            throw $_.Exception
+        }    
+    }
+    else {
+        $Error[0]        
+        Write-Output "Try running the following:"
+        Write-Output "`tRegister-PackageSource -Name `"NuGet`" -Location `"https://www.nuget.org/api/v2`" -ProviderName `"NuGet`""
+        Write-Output "`tGet-PackageSource -Name `"NuGet`" | Set-PackageSource -Trusted"
+        Write-Output "`tFind-Package -Name `"Oracle.ManagedDataAccess.Core`" -ProviderName `"NuGet`" | Install-Package -Force"
+        Write-Output "`n"
+        exit
+    }
+
+    # Create the connection string
+    $ConnectionString = "User Id = $($Credential.UserName); Password = $($Credential.GetNetworkCredential().Password); Data Source = $($DataSource)"
+
+    # Initialize the Oracle Connection run the query
     try {
-        $OracleConnector = New-Object Oracle.ManagedDataAccess.Client.OracleConnection($ConnectionString)
+        $OracleConnector = [Oracle.ManagedDataAccess.Client.OracleConnection]::new($ConnectionString)
         $OracleCommand = $OracleConnector.CreateCommand()
         $OracleCommand.CommandText = $Query
 
-        $resultSet = New-Object System.Data.DataTable
-        $OracleDataAdapter = New-Object Oracle.ManagedDataAccess.Client.OracleDataAdapter($OracleCommand)
-        [void]$OracleDataAdapter.Fill($resultSet)
+        $DataTable = [System.Data.DataTable]::new()
+        $OracleDataAdapter = [Oracle.ManagedDataAccess.Client.OracleDataAdapter]::new($OracleCommand)
+        [void]$OracleDataAdapter.Fill($DataTable)
     }
     catch {
         Write-Error ($_.Exception.ToString())
     }
     finally {
-        if ($OracleConnector.State -eq 'Open') { $OracleConnector.Close() }
+        if ($OracleConnector.State -eq "Open") { $OracleConnector.Close() }
     }
     
-    $resultSet
+    return $DataTable
 }
