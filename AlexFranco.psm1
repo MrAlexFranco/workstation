@@ -190,29 +190,144 @@ function Send-Email {
     }
 }
 
-function Test-SSLCertificate {
+function Test-NetCertificate {
     [CmdletBinding()]
-    param(
-        [String]$Server,
-        [int]$Port
+    param (
+        [Parameter(Mandatory)]
+        [String[]]$ComputerName,
+        [Parameter(Mandatory)]
+        [String[]]$Port
     )
 
-    if (!(Test-Path -Path "C:\Program Files\Git\usr\bin\openssl.exe")) {
-        throw "OpenSSL not found at 'C:\Program Files\Git\usr\bin\openssl.exe'"
+    # https://wiki.openssl.org/index.php/Binaries
+    # https://slproweb.com/products/Win32OpenSSL.html
+
+    begin {
+        $_ErrorActionPreference = $ErrorActionPreference
+        $_WarningPreference = $WarningPreference
+        $_ProgressPreference = $ProgressPreference
+        $Global:ErrorActionPreference = "Stop"
+        $Global:WarningPreference = "Break"
+        $Global:ProgressPreference = "SilentlyContinue"
+
+        $Results = @()
     }
 
-    $OpenSSL = @{
-        FilePath     = "C:\Program Files\Git\usr\bin\openssl.exe"
-        ArgumentList = @(
-            "s_client"
-            "-no-interactive"
-            "-connect $Server`:$Port"
-        )
-        Wait         = $true
-        NoNewWindow  = $true
-    }
+    process {
+        foreach ($CN in $ComputerName) {
+            foreach ($P in $Port) {
+                $TcpConnection = Test-NetConnection -ComputerName $CN -Port $P -WarningAction SilentlyContinue
+
+                if (-not $TcpConnection.TcpTestSucceeded) {
+                    # TCP port is not listening
+                    $CertificateStatus = $null
+                    $ExpirationDate = $null
+                    $DaysUntilExpiration = $null
+                    $Thumbprint = $null
+                    $Subject = $null
+                    $Issuer = $null
+                    $Version = $null
+                    $SerialNumber = $null
+                    $SignatureAlgorithm = $null
+                    $PublicKeyAlgorithm = $null
+                    $KeySize = $null
+                }
+                else {
+                    # TCP port is listening
+                    # Get certificate from TCP port
+                    $Certificate = [System.Net.Dns]::GetHostAddresses($CN) | ForEach-Object -Process {
+                        try {
+                            $TcpClient = [System.Net.Sockets.TcpClient]::new()
+                            # Connect(IPAddress, Port)
+                            $TcpClient.Connect($_.IPAddressToString, $P)
+                            # $innerStream, $LeaveInnerStreamOpen, $UserCertificateValidationCallback                            
+                            $SslStream = [System.Net.Security.SslStream]::new($TcpClient.GetStream(), $false, { $True })
+                            $SslStream.AuthenticateAsClient($CN)
+                            return $SslStream.RemoteCertificate
+                        }
+                        catch {
+                            return $null
+                        }
+                        finally {
+                            if ($SslStream) { $SslStream.Dispose() }
+                            if ($TcpClient) { $TcpClient.Dispose() }
+                        }
+                    } | Select-Object -Unique
+
+                    if (-not $Certificate) {
+                        # No certificate was retrieved
+                        $CertificateStatus = "No certificate"
+                        $ExpirationDate = $null
+                        $DaysUntilExpiration = $null
+                        $Thumbprint = $null
+                        $Subject = $null
+                        $Issuer = $null
+                        $Version = $null
+                        $SerialNumber = $null
+                        $SignatureAlgorithm = $null
+                        $PublicKeyAlgorithm = $null
+                        $KeySize = $null
+                    }
+                    else {
+                        # Certificate was retrieved
+                        $ExpirationDate = $Certificate.NotAfter
+
+                        $DaysUntilExpiration = [int]($ExpirationDate - (Get-Date)).TotalDays
+
+                        switch ($DaysUntilExpiration) {
+                            { $_ -le 30 } { $CertificateStatus = "Expiring Soon"; break }
+                            { $_ -le 0 } { $CertificateStatus = "Expired"; break }
+                            default { $CertificateStatus = "Valid"; break }
+                        }
+
+                        $Thumbprint = $Certificate.GetCertHashString()
+                        $Subject = $Certificate.Subject
+                        $Issuer = $Certificate.Issuer
+                        $Version = $Certificate.Version                        
+                        $SerialNumber = $Certificate.SerialNumber
+                        $SignatureAlgorithm = [System.Security.Cryptography.Oid]::new($Certificate.SignatureAlgorithm.Value).FriendlyName
+
+                        # Get certificate public key algorithm
+                        if ($Certificate.PublicKey.Oid.FriendlyName) {
+                            $PublicKeyAlgorithm = $Certificate.PublicKey.Oid.FriendlyName
+                        }
+                        else {
+                            $PublicKeyAlgorithm = $Certificate.PublicKey.Oid.Value
+                        }
+
+                        $KeySize = $Certificate.PublicKey.Key.KeySize
+                        $Thumbprint = $Certificate.GetCertHashString()
+                    }# End if (-not $Certificate)
+                }# End if (-not $TcpConnection.TcpTestSucceeded)
+
+                $Results += [PSCustomObject]@{
+                    ComputerName        = $CN
+                    Port                = $P
+                    TcpTestSucceeded    = $TcpConnection.TcpTestSucceeded
+                    CertificateStatus   = $CertificateStatus
+                    ExpirationDate      = $ExpirationDate
+                    DaysUntilExpiration = $DaysUntilExpiration
+                    Thumbprint          = $Thumbprint
+                    Subject             = $Subject
+                    Issuer              = $Issuer
+                    Version             = $Version
+                    SerialNumber        = $SerialNumber
+                    SignatureAlgorithm  = $SignatureAlgorithm
+                    PublicKeyAlgorithm  = $PublicKeyAlgorithm
+                    KeySize             = $KeySize
+                }
     
-    Start-Process @OpenSSL
+            } # End foreach ($P in $Port)
+        }# End foreach ($CN in $ComputerName)
+    }# End Process{}
+    
+    end {
+        $ErrorActionPreference = $_ErrorActionPreference
+        $WarningPreference = $_WarningPreference
+        $ProgressPreference = $_ProgressPreference
+
+        return $Results
+    }
 }
 
 function Add-DigitalSignature {
