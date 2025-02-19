@@ -524,7 +524,7 @@ function New-CertificateSigningRequest {
     ## Gathering Logic for SAN
     $IPAddressRegex = "(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
     $SAN = @(
-        "2.5.29.17 = {text}"
+        "2.5.29.17 = `"{text}`""
     )        
 
     $SubjectAlternateName | ForEach-Object -Process {
@@ -538,7 +538,10 @@ function New-CertificateSigningRequest {
         }
     }
 
-    $SAN
+    # Enhanced Key Usage
+    $KeyUsage = @(
+        "2.5.29.17 = `"{text}`""
+    )
 
     ## Required Because Powershell interprets $Windows as a variable not a string
     $Windows = "$Windows"
@@ -561,8 +564,10 @@ SMIME = FALSE
 RequestType = CMC
 
 [Extensions] 
-$SAN
-2.5.29.37 = "{text}1.3.6.1.5.5.7.3.1, 1.3.6.1.5.5.7.3.2"
+$(foreach ($alt in $SAN) { $alt; "`n" })
+2.5.29.37 = "{text}"
+_continue_ = 1.3.6.1.5.5.7.3.1
+_continue_ = 1.3.6.1.5.5.7.3.2
 
 [RequestAttributes] 
 CertificateTemplate=$Template
