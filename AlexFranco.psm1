@@ -523,20 +523,18 @@ function New-CertificateSigningRequest {
 
     ## Gathering Logic for SAN
     $IPAddressRegex = "(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
-    $SAN = "{text}"
+    $SAN = @(
+        "2.5.29.17 = {text}"
+    )        
 
     $SubjectAlternateName | ForEach-Object -Process {
         $AltName = $_
 
-        if ($SAN -ne "{text}") {
-            $SAN += "&"
-        }
-
         if ($AltName -match $IPAddressRegex) {
-            $SAN += "ip=$AltName"
+            $SAN += "_continue_ = `"IP Address=$AltName`""
         }
         else {
-            $SAN += "dns=$AltName"
+            $SAN += "_continue_ = `"DNS=$AltName`""
         }
     }
 
