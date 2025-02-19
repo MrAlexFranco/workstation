@@ -506,6 +506,21 @@ function New-CertificateSigningRequest {
    
     $ErrorActionPreference = "Inquire"
 
+    if ($Exportable -eq $true -and $ExportCertificate -eq $true) {
+        if (-not $ExportPath) {
+            $ExportPath = ".\$Subject.pfx"
+        }
+        else {
+            $ExportDirectory = Split-Path -Path $ExportPath -Parent
+
+            if (-not (Test-Path -Path $ExportDirectory)) {
+                New-Item -Path $ExportDirectory -ItemType Directory | Out-Null
+            }
+        }
+
+        Set-Location -Path $ExportDirectory
+    }
+
     ## Gathering Logic for SAN
     $IPAddressRegex = "(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
     $SAN = "{text}"
@@ -513,7 +528,7 @@ function New-CertificateSigningRequest {
     $SubjectAlternateName | ForEach-Object -Process {
         $AltName = $_
 
-        if (-not $SAN -eq "{text}") {
+        if ($SAN -ne "{text}") {
             $SAN += "&"
         }
 
@@ -524,6 +539,8 @@ function New-CertificateSigningRequest {
             $SAN += "dns=$AltName"
         }
     }
+
+    $SAN
 
     ## Required Because Powershell interprets $Windows as a variable not a string
     $Windows = "$Windows"
@@ -581,7 +598,7 @@ CertificateTemplate=$Template
 
     # File cleanup
     if (-not $Quiet) { Write-Host "Cleaning up files generated" }
-    Remove-Item "$filename.*" -Force
+    # Remove-Item "$filename.*" -Force
 
     # Asking if you would like to export the certificate 
     if ($Exportable -eq $true -and $ExportCertificate -eq $true) {
