@@ -93,7 +93,8 @@ function ping2 {
         if ($ping) {
             Write-Host -NoNewline '!'
             if (!$Quiet) { [Console]::Beep() }
-        } else {
+        }
+        else {
             Write-Host -NoNewline '.'
         }
         Start-Sleep -Seconds $Delay
@@ -112,7 +113,8 @@ function Get-MACVendor {
                         $_ -match '[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]' -or `
                         $_ -match '[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]\.[a-zA-Z0-9][a-zA-Z0-9]') {
                     $true
-                } else {
+                }
+                else {
                     throw 'Invalid or incomplete MAC address format.'
                     $false
                 }
@@ -498,22 +500,33 @@ function New-CertificateSigningRequest {
         [string]$Exportable,        
         [bool]$ExportCertificate,
         [string]$ExportPath,        
-        [securestring]$PfxPassword
+        [securestring]$PfxPassword,
+        [Switch]$Quiet
     )
    
-    $ErrorActionPreference = 'Inquire'
+    $ErrorActionPreference = "Inquire"
 
     ## Gathering Logic for SAN
-    $SAN = "{text}dns=$($SubjectAlternateName[0])"
+    $IPAddressRegex = "(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
+    $SAN = "{text}"
 
-    if ($SubjectAlternateName.Count -gt 1) {
-        $SubjectAlternateName[1..$SubjectAlternateName.Count] | ForEach-Object -Process {
-            $SAN += "&dns=$_"
+    $SubjectAlternateName | ForEach-Object -Process {
+        $AltName = $_
+
+        if (-not $SAN -eq "{text}") {
+            $SAN += "&"
+        }
+
+        if ($AltName -match $IPAddressRegex) {
+            $SAN += "ip=$AltName"
+        }
+        else {
+            $SAN += "dns=$AltName"
         }
     }
 
     ## Required Because Powershell interprets $Windows as a variable not a string
-    $Windows = '$Windows'
+    $Windows = "$Windows"
     # KeyUsage = 0xf0
 
     $inputfiletemplate = @"
@@ -550,14 +563,13 @@ CertificateTemplate=$Template
     $filename = $Subject.Substring(0, 3)
 
     ### Make allowance for wildcard CNs
-    if ($filename -like "*") {
-        Write-Host "Hang on...have to create a new filename..."
+    if ($filename -like "*") {        
         $filename = ( -join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ }))
     }
 
     $inputfiletemplate | Out-File "$filename.inf"
 
-    Write-Host "Generating request"
+    if (-not $Quiet) { Write-Host "Generating request" }
 
     ### End of Gathering Certificate information ###
 
@@ -566,15 +578,15 @@ CertificateTemplate=$Template
 
     # Submitting Request to CA with request and saving file as a .cer
     $CertSubmitDateTime = Get-Date
-    Write-Host "Submitting request to CA"
+    if (-not $Quiet) { Write-Host "Submitting request to CA" }
     & "C:\Windows\System32\certreq.exe" "-submit" "-config" "SCSRV82.weci.net\SubCa" "$filename.req" "$filename.cer"
 
     # Accepting the certificate from SubCA
     & "C:\Windows\System32\certreq.exe" "-accept" "$filename.cer"
-    Write-Host "Certificate Imported Successfully"
+    if (-not $Quiet) { Write-Host "Certificate Imported Successfully" }
 
     # File cleanup
-    Write-Host "Cleaning up files generated"
+    if (-not $Quiet) { Write-Host "Cleaning up files generated" }
     Remove-Item "$filename.*" -Force
 
     # Asking if you would like to export the certificate 
@@ -590,8 +602,8 @@ CertificateTemplate=$Template
             }
         }
         
-        #Show certifiate store 
-        Write-Host "Fetching Certificates in store for you..."
+        # Show certifiate store 
+        if (-not $Quiet) { Write-Host "Fetching Certificates in store for you..." }
         $CertStore = Get-ChildItem -Path "Cert:\LocalMachine\my" | Where-Object -FilterScript { $_.Subject -match $Subject -and $_.NotBefore -gt $CertSubmitDateTime.AddMinutes(-180) }
 
         if ($CertStore.Count -eq 1) {
