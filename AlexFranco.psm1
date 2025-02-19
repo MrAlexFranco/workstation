@@ -531,10 +531,10 @@ function New-CertificateSigningRequest {
         $AltName = $_
 
         if ($AltName -match $IPAddressRegex) {
-            $SAN += "_continue_ = `"IP Address=$AltName`""
+            $SAN += "_continue_ = `"ipaddress=$AltName&`""
         }
         else {
-            $SAN += "_continue_ = `"DNS=$AltName`""
+            $SAN += "_continue_ = `"dns=$AltName&`""
         }
     }
 
