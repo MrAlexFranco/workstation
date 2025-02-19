@@ -491,15 +491,15 @@ function New-CertificateSigningRequest {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $True)]
-        [string]$Subject,        
+        [string]$Subject,
         [Parameter(Mandatory = $True)]
         [string[]]$SubjectAlternateName,
         [Parameter(Mandatory = $True)]
-        [string]$Template,        
+        [string]$Template,
         [Parameter(Mandatory = $True)]
-        [string]$Exportable,        
+        [string]$Exportable,
         [bool]$ExportCertificate,
-        [string]$ExportPath,        
+        [string]$ExportPath,
         [securestring]$PfxPassword,
         [Switch]$Quiet
     )
@@ -545,15 +545,9 @@ ProviderType = 12
 SMIME = FALSE
 RequestType = CMC
 
-[Strings] 
-szOID_SUBJECT_ALT_NAME2 = "2.5.29.17" 
-szOID_ENHANCED_KEY_USAGE = "2.5.29.37" 
-szOID_PKIX_KP_SERVER_AUTH = "1.3.6.1.5.5.7.3.1" 
-szOID_PKIX_KP_CLIENT_AUTH = "1.3.6.1.5.5.7.3.2"
-
 [Extensions] 
-%szOID_SUBJECT_ALT_NAME2% = "$SAN" 
-%szOID_ENHANCED_KEY_USAGE% = "{text}%szOID_PKIX_KP_SERVER_AUTH%,%szOID_PKIX_KP_CLIENT_AUTH%"
+2.5.29.17 = "$SAN"
+2.5.29.37 = "{text}1.3.6.1.5.5.7.3.1, 1.3.6.1.5.5.7.3.2"
 
 [RequestAttributes] 
 CertificateTemplate=$Template
