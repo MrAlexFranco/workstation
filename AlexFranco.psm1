@@ -501,7 +501,7 @@ function New-CertificateSigningRequest {
         [bool]$ExportCertificate,
         [string]$ExportPath,
         [securestring]$PfxPassword,
-        [Switch]$Quiet
+        [bool]$Quiet
     )
    
     $ErrorActionPreference = "Inquire"
