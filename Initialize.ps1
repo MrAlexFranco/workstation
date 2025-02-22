@@ -2,7 +2,8 @@
 
 [cmdletbinding()]
 param (
-    [switch]$FirstRun
+    [switch]$FirstRun,
+    [switch]$ProfileOnly
 )
 
 $apps = @(
@@ -93,33 +94,34 @@ if ($FirstRun) {
     }
 "@
     Set-Content -Path C:\Git\git.code-workspace -Value $gitWorkspace -Force
-} else {
-    $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 }
+elseif (-not $ProfileOnly) {
+    $apps | ForEach-Object { $_; winget upgrade --id $_; '' }
 
-'Removing junk...'
-$remove = @(
-	'Microsoft.BingNews'
-	'Microsoft.BingWeather'
-	'Microsoft.GamingApp'
-	'Microsoft.GetHelp'
-	'Microsoft.Getstarted'
-	'Microsoft.MicrosoftSolitaireCollection'
-	'Microsoft.MicrosoftStickyNotes'
-	'Microsoft.People'
-	'Microsoft.Windows.PeopleExperienceHost'
-	'Microsoft.WindowsAlarms'
-	'Microsoft.WindowsFeedbackHub'
-	'Microsoft.WindowsMaps'
-	'Xbox'
-	'Microsoft.ZuneMusic'
-	'Microsoft.ZuneVideo'
-)
+    'Removing junk...'
+    $remove = @(
+        'Microsoft.BingNews'
+        'Microsoft.BingWeather'
+        'Microsoft.GamingApp'
+        'Microsoft.GetHelp'
+        'Microsoft.Getstarted'
+        'Microsoft.MicrosoftSolitaireCollection'
+        'Microsoft.MicrosoftStickyNotes'
+        'Microsoft.People'
+        'Microsoft.Windows.PeopleExperienceHost'
+        'Microsoft.WindowsAlarms'
+        'Microsoft.WindowsFeedbackHub'
+        'Microsoft.WindowsMaps'
+        'Xbox'
+        'Microsoft.ZuneMusic'
+        'Microsoft.ZuneVideo'
+    )
 
-$remove | ForEach-Object -Process {
-	$rmApp = $_
-	"Removing $rmApp..."
-	Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $rmApp } | Remove-AppxPackage -AllUsers -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    $remove | ForEach-Object -Process {
+        $rmApp = $_
+        "Removing $rmApp..."
+        Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $rmApp } | Remove-AppxPackage -AllUsers -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+    }
 }
 
 # Copy profile
