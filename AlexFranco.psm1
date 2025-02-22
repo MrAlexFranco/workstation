@@ -663,16 +663,15 @@ function Invoke-OracleQuery {
         }
         catch {
             throw $_.Exception
-        }    
+        }
     }
     else {
-        $Error[0]        
+        Write-Host $Error[0].FullyQualifiedErrorId -ForegroundColor Red
         Write-Output "Try running the following:"
-        Write-Output "`tRegister-PackageSource -Name `"NuGet`" -Location `"https://www.nuget.org/api/v2`" -ProviderName `"NuGet`""
-        Write-Output "`tGet-PackageSource -Name `"NuGet`" | Set-PackageSource -Trusted"
-        Write-Output "`tFind-Package -Name `"Oracle.ManagedDataAccess.Core`" -ProviderName `"NuGet`" | Install-Package -Force"
-        Write-Output "`n"
-        exit
+        Write-Output " Register-PackageSource -Name `"NuGet`" -Location `"https://www.nuget.org/api/v2`" -ProviderName `"NuGet`""
+        Write-Output " Get-PackageSource -Name `"NuGet`" | Set-PackageSource -Trusted"
+        Write-Output " Find-Package -Name `"Oracle.ManagedDataAccess.Core`" -ProviderName `"NuGet`" | Install-Package -Force"
+        break
     }
 
     # Create the connection string
@@ -696,4 +695,43 @@ function Invoke-OracleQuery {
     }
     
     return $DataTable
+}
+
+function Get-Inflation {
+    $response = Invoke-WebRequest -Uri "https://api.bls.gov/publicAPI/v2/timeseries/data/CUUR0000SA0?registrationkey=$(Get-Secret -Name "BLS-API-Key" -AsPlainText)&calculations=true" -Headers @{ "Content-Type" = "application/json" } -Method "Get"
+
+    try {
+        $Content = $response.Content | ConvertFrom-Json -Depth 10
+        $Status = $Content.Status
+        $Message = $Content.Message
+        
+        if ($Status -ne "REQUEST_SUCCEEDED") {
+            Write-Host $Status
+            Write-Host $Message
+            return
+        }
+        elseif ($Message -and $Message -ne "BLS does not produce net change calculations for Series CUUR0000SA0") {
+            Write-Host "Response included message: $Message"
+        }
+
+        Write-Host "Series ID: CUUR0000SA0"
+        Write-Host "Consumer Price Index for All Urban Consumers, All Items, Not Seasonally Adjusted"
+        $Data = ($response.Content | ConvertFrom-Json -Depth 10).Results.Series.Data
+        $Data | ForEach-Object -Process {
+            $d = $_
+            $PercentChanges = $d.Calculations.Pct_Changes
+            [PSCustomObject]@{
+                Year       = $d.Year
+                Period     = $d.Period -replace "M", ""
+                Value      = $d.Value
+                "1-Month"  = $PercentChanges."1"
+                "3-Month"  = $PercentChanges."3"
+                "6-Month"  = $PercentChanges."6"
+                "12-Month" = $PercentChanges."12"    
+            }
+        } | Format-Table -AutoSize -Wrap
+    }
+    catch {        
+        Write-Host $_.Exception.Message
+    }
 }
