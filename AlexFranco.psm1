@@ -543,13 +543,9 @@ function New-CertificateSigningRequest {
         "2.5.29.17 = `"{text}`""
     )
 
-    ## Required Because Powershell interprets $Windows as a variable not a string
-    $Windows = "$Windows"
-    # KeyUsage = 0xf0
-
     $inputfiletemplate = @"
 [Version]
-Signature="$Windows NT$"
+Signature="`$Windows NT$"
 
 [NewRequest]
 Subject = "CN=$Subject"

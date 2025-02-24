@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 [cmdletbinding()]
 param (
     [switch]$FirstRun,
