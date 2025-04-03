@@ -731,3 +731,79 @@ function Get-Inflation {
         Write-Host $_.Exception.Message
     }
 }
+
+function Get-FirewallLog {
+    param(
+        [string]$FilePath = "$env:SystemRoot\System32\LogFiles\Firewall\pfirewall.log"
+    )
+    
+    Get-Content -Path $FilePath | Where-Object -FilterScript { $_ -notmatch "^(#|\s)" -and $_ -match "\S" } | ForEach-Object -Process {
+        $Line = $_.Split(" ")
+        
+        [PSCustomObject]@{
+            DateTime = [System.DateTime]::Parse("$($Line[0]) $($Line[1])")
+            Action   = $Line[2]
+            Protocol = $Line[3]
+            SrcIP    = $Line[4]
+            DstIP    = $Line[5]
+            Srcport  = $Line[6]
+            Dstport  = $Line[7]
+            Size     = $Line[8]
+            TcpFlags = $Line[9]
+            TcpSyn   = $Line[10]
+            TcpAck   = $Line[11]
+            TcpWin   = $Line[12]
+            IcmpType = $Line[13]
+            IcmpCode = $Line[14]
+            Info     = $Line[15]
+            Path     = $Line[16]
+        }
+    }
+}
+
+function Stop-Sleep {
+    param(
+        [int]$DurationMinutes = 0 # Set to 0 for indefinite, or specify duration in minutes
+    )
+
+    # Add a C# class to prevent sleep
+    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+
+public class StayAwake {
+    [DllImport("kernel32.dll")]
+    public static extern uint SetThreadExecutionState(uint esFlags);
+
+    public const uint ES_CONTINUOUS = 0x80000000;
+    public const uint ES_SYSTEM_REQUIRED = 0x00000001;
+
+    public static void PreventSleep() {
+        SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+    }
+
+    public static void AllowSleep() {
+        SetThreadExecutionState(ES_CONTINUOUS);
+    }
+}
+"@
+
+    # Prevent sleep
+    [StayAwake]::PreventSleep()
+    Write-Host "System will stay awake."
+
+    if ($DurationMinutes -gt 0) {
+        # Keep awake for the specified duration
+        Start-Sleep -Seconds ($DurationMinutes * 60)
+        # Allow sleep after the duration
+        [StayAwake]::AllowSleep()
+        Write-Host "System can now sleep."
+    }
+    else {
+        # Keep awake indefinitely
+        Write-Host "Press Ctrl+C to stop and allow the system to sleep."
+        while ($true) {
+            Start-Sleep -Seconds 60
+        }
+    }
+}
