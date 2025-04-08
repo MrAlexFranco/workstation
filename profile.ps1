@@ -12,11 +12,11 @@ if ($env:USERDNSDOMAIN -eq "WECI.NET") {
 }
 
 # Set-PSReadLineOptions
-Set-PSReadLineOption -HistoryNoDuplicates $true -PredictionSource "History" -PredictionViewStyle "ListView"
+Set-PSReadLineOption -HistoryNoDuplicates:$true -PredictionSource "History" -PredictionViewStyle "ListView"
 
 # Set Vars
 New-Item -Path "Env:\" -Name "CODE" -Value "$env:USERPROFILE\OneDrive - Franco.dev\Code" -Force | Out-Null
 Set-Location -Path $env:CODE
 
 # Region Custom Prompt
-oh-my-posh init pwsh | Invoke-Expression
+oh-my-posh init pwsh --config "$env:USERPROFILE\.material.json" | Invoke-Expression
