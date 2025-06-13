@@ -10,3 +10,6 @@ Set-PSReadLineOption -HistoryNoDuplicates:$true -PredictionSource "History" -Pre
 # Set Vars
 New-Item -Path "Env:\" -Name "CODE" -Value "$env:USERPROFILE\OneDrive - Franco.dev\Code" -Force | Out-Null
 Set-Location -Path $env:CODE
+
+# Prompt
+oh-my-posh init pwsh --config "$env:USERPROFILE\material.omp.json"
