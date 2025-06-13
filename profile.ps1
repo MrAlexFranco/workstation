@@ -12,4 +12,4 @@ New-Item -Path "Env:\" -Name "CODE" -Value "$env:USERPROFILE\OneDrive - Franco.d
 Set-Location -Path $env:CODE
 
 # Prompt
-oh-my-posh init pwsh --config "$env:USERPROFILE\material.omp.json"
+oh-my-posh init pwsh --config "$env:USERPROFILE\material.omp.json" | Invoke-Expression
