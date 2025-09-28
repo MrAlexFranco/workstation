@@ -807,3 +807,34 @@ public class StayAwake {
         }
     }
 }
+
+function Invoke-NetMonitor {
+    param(
+        [string]$ComputerName
+    )
+
+    $InvokeDateTime = Get-Date
+    
+    # Write out initial ping results
+    $Ping = Test-Connection -ComputerName $ComputerName -Count 1 -Quiet
+    "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | $ComputerName`: $Ping"
+
+    # Monitor for changes in ping status
+    $PingChanged = $false
+    while ($true) {
+        Start-Sleep -Seconds 5
+
+        $NewPing = Test-Connection -ComputerName $ComputerName -Count 1 -Quiet
+        if ($NewPing -ne $Ping) {
+            $PingChanged = $true
+            $Ping = $NewPing
+            "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | $ComputerName`: $Ping"
+        }
+
+        # Every 5 minutes, write out a status message if the ping state hasn't changed
+        if ((Get-Date) -gt $InvokeDateTime.AddMinutes(5)) {
+            $InvokeDateTime = Get-Date
+            "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") | $ComputerName`: $Ping"
+        }
+    }
+}
