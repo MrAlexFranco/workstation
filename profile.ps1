@@ -8,7 +8,7 @@ if ($env:USERDNSDOMAIN -eq "WECI.NET") {
 Set-PSReadLineOption -HistoryNoDuplicates:$true -PredictionSource "History" -PredictionViewStyle "ListView"
 
 # Set Vars
-New-Item -Path "Env:\" -Name "CODE" -Value "$env:USERPROFILE\OneDrive - Franco.dev\Code" -Force | Out-Null
+New-Item -Path "Env:\" -Name "CODE" -Value "$HOME\Code" -Force | Out-Null
 Set-Location -Path $env:CODE
 
 # Prompt
