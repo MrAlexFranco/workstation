@@ -838,3 +838,35 @@ function Invoke-NetMonitor {
         }
     }
 }
+
+function Test-DomainCredentials {
+    param(
+        [string]$DomainName = "weci.net",
+        [String]$DomainPath,
+        [PSCredential]$Credential
+    )
+
+    if (-not $DomainPath) {
+        $DomainPath = "LDAP://DC=$($DomainName -replace '\.',',DC=')"
+    }
+
+    $AuthenticationType = [System.DirectoryServices.AuthenticationTypes]::Secure -bor [System.DirectoryServices.AuthenticationTypes]::Sealing
+
+    $UserName = $Credential.UserName
+    $Password = $Credential.GetNetworkCredential().Password
+
+    $ADSI = [System.DirectoryServices.DirectoryEntry]::new($DomainPath, $UserName, $Password, $AuthenticationType)
+    if ($ADSI.Path -eq $DomainPath) {
+        return [PSCustomObject]@{
+            DomainPath = $DomainPath
+            UserName   = $UserName
+            Result     = $true
+        }
+    } else {
+        return [PSCustomObject]@{
+            DomainPath = $DomainPath
+            UserName   = $UserName
+            Result     = $false
+        }
+    }
+}
