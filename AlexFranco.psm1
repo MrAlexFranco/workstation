@@ -874,20 +874,41 @@ function Test-DomainCredentials {
 function Get-MappedDrive {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]    
-        [string]$SID,
-        [Parameter(Mandatory = $true)]    
+        [Parameter(Mandatory = $true)]
         [string]$ComputerName,
-        [PSCredential]$Credential
+        [PSCredential]$Credential,
+        [string]$Username,            
+        [string]$SID
     )
+
+    # Parameter check
+    if (-not $Username -and -not $SID) {
+        Write-Host "Either Username or SID must be provided" -ForegroundColor Red
+        exit 1
+    }
 
     $Ping = Test-Connection -ComputerName $ComputerName -Count 1 -Quiet
     if (-not $Ping) {
-        Write-Error "Unable to reach $ComputerName"
-        return
+        Write-Host "Unable to reach $ComputerName" -ForegroundColor Red
+        exit 1
     }
 
     $Session = New-PSSession -ComputerName $ComputerName -Credential $Credential -ErrorAction Stop
+
+    if ($Username -and -not $SID) {
+        $SID = Invoke-Command -Session $Session -ArgumentList $Username -ScriptBlock {
+            param ($Username)
+            $UserProfile = Get-CimInstance -ClassName "Win32_UserProfile" | Where-Object -FilterScript { -not $_.Special -and $_.Loaded -and $_.LocalPath -match "^C:\\Users\\$Username$" } 
+            return $UserProfile.SID
+        }
+    }
+
+    if (-not $SID) {
+        Write-Host "Unable to determine SID for user $Username" -ForegroundColor Red
+        Remove-PSSession -Session $Session
+        exit 1
+    }
+
     $MappedDrives = Invoke-Command -Session $Session -ArgumentList $SID -ScriptBlock {
         param ($SID)
         $null = New-PSDrive -Name "HKU" -Root "HKEY_USERS" -PSProvider "Registry"
