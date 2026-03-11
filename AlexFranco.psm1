@@ -870,3 +870,53 @@ function Test-DomainCredentials {
         }
     }
 }
+
+function Get-MappedDrive {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]    
+        [string]$SID,
+        [Parameter(Mandatory = $true)]    
+        [string]$ComputerName,
+        [PSCredential]$Credential
+    )
+
+    $Ping = Test-Connection -ComputerName $ComputerName -Count 1 -Quiet
+    if (-not $Ping) {
+        Write-Error "Unable to reach $ComputerName"
+        return
+    }
+
+    $Session = New-PSSession -ComputerName $ComputerName -Credential $Credential -ErrorAction Stop
+    $MappedDrives = Invoke-Command -Session $Session -ArgumentList $SID -ScriptBlock {
+        param ($SID)
+        $null = New-PSDrive -Name "HKU" -Root "HKEY_USERS" -PSProvider "Registry"
+        Get-ChildItem -Path "HKU:\$SID\Network" | ForEach-Object -Process {
+            [PSCustomObject]@{
+                Name = $_.PSChildName
+                Path = $_.GetValue("RemotePath")
+            }
+        }
+    } | Select-Object -Property "Name", "Path"
+
+    return $MappedDrives
+}
+
+function Get-NextHostname {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Prefix
+    )
+
+    $Hostnames = Get-ADComputer -Filter "Name -like '$Prefix*'" |
+    Select-Object -Property "Name", @{ Name = "Number"; Expression = { [int]($_.Name -replace "$Prefix", "") }; } |
+    Sort-Object -Property "Number"
+
+    if ($Hostnames.Count -eq 0) {
+        return "$Prefix1"
+    }
+
+    $NextNumber = $Hostnames[-1].Number + 1
+    return "$Prefix$NextNumber"
+}
