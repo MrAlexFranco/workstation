@@ -27,7 +27,7 @@ function Get-ProductSupport {
     switch -Regex ($Manufacturer) {
         'Dell' { $URL = 'https://www.dell.com/support/home/en-us/product-support/servicetag/{0}' -f $SerialNumber }
         'Lenovo' { $URL = 'https://pcsupport.lenovo.com/us/en/products/{0}' -f $SerialNumber }
-        Default { $URL = $null }
+        default { $URL = $null }
     }
 
     if ($URL -and $Show) {
@@ -93,8 +93,7 @@ function ping2 {
         if ($ping) {
             Write-Host -NoNewline '!'
             if (!$Quiet) { [Console]::Beep() }
-        }
-        else {
+        } else {
             Write-Host -NoNewline '.'
         }
         Start-Sleep -Seconds $Delay
@@ -113,8 +112,7 @@ function Get-MACVendor {
                         $_ -match '[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]' -or `
                         $_ -match '[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]\.[a-zA-Z0-9][a-zA-Z0-9]') {
                     $true
-                }
-                else {
+                } else {
                     throw 'Invalid or incomplete MAC address format.'
                     $false
                 }
@@ -186,8 +184,7 @@ function Send-Email {
         $Client.Send($Message)
         $Client.Dispose()
         $Message.Dispose()
-    }
-    catch {
+    } catch {
         Write-Error -Message $_.Exception.Message
     }
 }
@@ -233,8 +230,7 @@ function Test-NetCertificate {
                     $SignatureAlgorithm = $null
                     $PublicKeyAlgorithm = $null
                     $KeySize = $null
-                }
-                else {
+                } else {
                     # TCP port is listening
                     # Get certificate from TCP port
                     $Certificate = [System.Net.Dns]::GetHostAddresses($CN) | ForEach-Object -Process {
@@ -246,11 +242,9 @@ function Test-NetCertificate {
                             $SslStream = [System.Net.Security.SslStream]::new($TcpClient.GetStream(), $false, { $True })
                             $SslStream.AuthenticateAsClient($CN)
                             return $SslStream.RemoteCertificate
-                        }
-                        catch {
+                        } catch {
                             return $null
-                        }
-                        finally {
+                        } finally {
                             if ($SslStream) { $SslStream.Dispose() }
                             if ($TcpClient) { $TcpClient.Dispose() }
                         }
@@ -269,8 +263,7 @@ function Test-NetCertificate {
                         $SignatureAlgorithm = $null
                         $PublicKeyAlgorithm = $null
                         $KeySize = $null
-                    }
-                    else {
+                    } else {
                         # Certificate was retrieved
                         $ExpirationDate = $Certificate.NotAfter
 
@@ -292,8 +285,7 @@ function Test-NetCertificate {
                         # Get certificate public key algorithm
                         if ($Certificate.PublicKey.Oid.FriendlyName) {
                             $PublicKeyAlgorithm = $Certificate.PublicKey.Oid.FriendlyName
-                        }
-                        else {
+                        } else {
                             $PublicKeyAlgorithm = $Certificate.PublicKey.Oid.Value
                         }
 
@@ -472,16 +464,14 @@ function Compare-Xml {
             $DifferenceCount++
             Write-Host "`r`n"
         }
-    }
-    elseif ($DifferenceObject.InnerText) {
+    } elseif ($DifferenceObject.InnerText) {
         Write-Host "Difference has inner text but expected does not for Differenc = " + $DifferenceObject.Name
     }
 
     if (-not $Quiet) {
         if ($DifferenceCount -eq 0) {
             Write-Host "No differences found"
-        }
-        else {
+        } else {
             Write-Host "Found $DifferenceCount differences"
         }
     }
@@ -489,7 +479,7 @@ function Compare-Xml {
 
 function New-CertificateSigningRequest {
     [CmdletBinding()]
-    Param(
+    param(
         [Parameter(Mandatory = $True)]
         [string]$Subject,
         [Parameter(Mandatory = $True)]
@@ -509,8 +499,7 @@ function New-CertificateSigningRequest {
     if ($Exportable -eq $true -and $ExportCertificate -eq $true) {
         if (-not $ExportPath) {
             $ExportPath = ".\$Subject.pfx"
-        }
-        else {
+        } else {
             $ExportDirectory = Split-Path -Path $ExportPath -Parent
 
             if (-not (Test-Path -Path $ExportDirectory)) {
@@ -532,8 +521,7 @@ function New-CertificateSigningRequest {
 
         if ($AltName -match $IPAddressRegex) {
             $SAN += "_continue_ = `"ipaddress=$AltName&`""
-        }
-        else {
+        } else {
             $SAN += "_continue_ = `"dns=$AltName&`""
         }
     }
@@ -603,8 +591,7 @@ CertificateTemplate=$Template
     if ($Exportable -eq $true -and $ExportCertificate -eq $true) {
         if (-not $ExportPath) {
             $ExportPath = ".\$Subject.pfx"
-        }
-        else {
+        } else {
             $ExportDirectory = Split-Path -Path $ExportPath -Parent
 
             if (-not (Test-Path -Path $ExportDirectory)) {
@@ -618,8 +605,7 @@ CertificateTemplate=$Template
 
         if ($CertStore.Count -eq 1) {
             $CertChoice = $CertStore[0]
-        }
-        else {
+        } else {
             $CertChoice = $CertStore | Select-Object -Property "Subject", "EnhancedKeyUsageList", "NotBefore", "NotAfter", "Thumbprint" | Out-GridView -PassThru
         }
 
@@ -656,12 +642,10 @@ function Invoke-OracleQuery {
         try {
             $OraclePackagePath = Split-Path -Path $OraclePackage.Source -Parent
             Get-ChildItem -Path $OraclePackagePath -Recurse -File -Filter "*.dll" | Select-Object -First 1 | ForEach-Object -Process { Add-Type -Path $_.FullName }
-        }
-        catch {
+        } catch {
             throw $_.Exception
         }
-    }
-    else {
+    } else {
         Write-Host $Error[0].FullyQualifiedErrorId -ForegroundColor Red
         Write-Output "Try running the following:"
         Write-Output " Register-PackageSource -Name `"NuGet`" -Location `"https://www.nuget.org/api/v2`" -ProviderName `"NuGet`""
@@ -682,11 +666,9 @@ function Invoke-OracleQuery {
         $DataTable = [System.Data.DataTable]::new()
         $OracleDataAdapter = [Oracle.ManagedDataAccess.Client.OracleDataAdapter]::new($OracleCommand)
         [void]$OracleDataAdapter.Fill($DataTable)
-    }
-    catch {
+    } catch {
         Write-Error ($_.Exception.ToString())
-    }
-    finally {
+    } finally {
         if ($OracleConnector.State -eq "Open") { $OracleConnector.Close() }
     }
     
@@ -705,8 +687,7 @@ function Get-Inflation {
             Write-Host $Status
             Write-Host $Message
             return
-        }
-        elseif ($Message -and $Message -ne "BLS does not produce net change calculations for Series CUUR0000SA0") {
+        } elseif ($Message -and $Message -ne "BLS does not produce net change calculations for Series CUUR0000SA0") {
             Write-Host "Response included message: $Message"
         }
 
@@ -726,8 +707,7 @@ function Get-Inflation {
                 "12-Month" = $PercentChanges."12"    
             }
         } | Format-Table -AutoSize -Wrap
-    }
-    catch {        
+    } catch {        
         Write-Host $_.Exception.Message
     }
 }
@@ -798,8 +778,7 @@ public class StayAwake {
         # Allow sleep after the duration
         [StayAwake]::AllowSleep()
         Write-Host "System can now sleep."
-    }
-    else {
+    } else {
         # Keep awake indefinitely
         Write-Host "Press Ctrl+C to stop and allow the system to sleep."
         while ($true) {
@@ -873,18 +852,37 @@ function Test-DomainCredentials {
 
 function Get-MappedDrive {
     [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$ComputerName,
-        [PSCredential]$Credential,
-        [string]$Username,            
-        [string]$SID
+    param (        
+        [string]$ComputerName = $env:COMPUTERNAME,
+        [string]$Username = $env:USERNAME,
+        [PSCredential]$Credential
     )
 
-    # Parameter check
-    if (-not $Username -and -not $SID) {
-        Write-Host "Either Username or SID must be provided" -ForegroundColor Red
-        exit 1
+    # If local
+    if ($ComputerName -eq $env:COMPUTERNAME) {
+        $UserProfile = Get-CimInstance -ClassName "Win32_UserProfile" |
+        Where-Object -FilterScript {
+            -not $_.Special -and
+            $_.Loaded -and
+            $_.LocalPath -match "^C:\\Users\\$Username$"
+        }
+
+        if (-not $UserProfile) {
+            Write-Host "Unable to determine user profile for $Username" -ForegroundColor Red
+            exit 1
+        }
+
+        $SID = $UserProfile.SID
+
+        $null = New-PSDrive -Name "HKU" -Root "HKEY_USERS" -PSProvider "Registry"
+        $MappedDrives = Get-ChildItem -Path "HKU:\$SID\Network" | ForEach-Object -Process {
+            [PSCustomObject]@{
+                Name = $_.PSChildName
+                Path = $_.GetValue("RemotePath")
+            }
+        } | Select-Object -Property "Name", "Path"
+
+        return $MappedDrives
     }
 
     $Ping = Test-Connection -ComputerName $ComputerName -Count 1 -Quiet
@@ -895,18 +893,15 @@ function Get-MappedDrive {
 
     $Session = New-PSSession -ComputerName $ComputerName -Credential $Credential -ErrorAction Stop
 
-    if ($Username -and -not $SID) {
-        $SID = Invoke-Command -Session $Session -ArgumentList $Username -ScriptBlock {
-            param ($Username)
-            $UserProfile = Get-CimInstance -ClassName "Win32_UserProfile" | Where-Object -FilterScript { -not $_.Special -and $_.Loaded -and $_.LocalPath -match "^C:\\Users\\$Username$" } 
-            return $UserProfile.SID
+    $SID = Invoke-Command -Session $Session -ArgumentList $Username -ScriptBlock {
+        param ($Username)
+        $UserProfile = Get-CimInstance -ClassName "Win32_UserProfile" | Where-Object -FilterScript { -not $_.Special -and $_.Loaded -and $_.LocalPath -match "^C:\\Users\\$Username$" } 
+        if (-not $UserProfile) {
+            Write-Host "Unable to determine user profile for $Username" -ForegroundColor Red
+            Remove-PSSession -Session $Session
+            exit 1
         }
-    }
-
-    if (-not $SID) {
-        Write-Host "Unable to determine SID for user $Username" -ForegroundColor Red
-        Remove-PSSession -Session $Session
-        exit 1
+        return $UserProfile.SID
     }
 
     $MappedDrives = Invoke-Command -Session $Session -ArgumentList $SID -ScriptBlock {
@@ -920,6 +915,7 @@ function Get-MappedDrive {
         }
     } | Select-Object -Property "Name", "Path"
 
+    Remove-PSSession -Session $Session
     return $MappedDrives
 }
 
