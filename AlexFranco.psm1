@@ -937,3 +937,98 @@ function Get-NextHostname {
     $NextNumber = $Hostnames[-1].Number + 1
     return "$Prefix$NextNumber"
 }
+
+function Open-PuTTYSerialConnection {
+    [CmdletBinding()]
+    param(
+        [Parameter(ParameterSetName = "CustomSettings")]
+        [Parameter(ParameterSetName = "ProfileSettings")]
+        $COMPort,
+        [Parameter(Mandatory = $false, ParameterSetName = "ProfileSettings", Position = 0)]
+        $SettingsProfile,
+        [Parameter(Mandatory = $true, ParameterSetName = "CustomSettings")]
+        $BaudRate,
+        [Parameter(Mandatory = $true, ParameterSetName = "CustomSettings")]
+        [ValidateSet("5", "6", "7", "8", "9")]
+        $DataBits,
+        [Parameter(Mandatory = $true, ParameterSetName = "CustomSettings")]
+        [ValidateSet("n", "None", "o", "Odd", "e", "Even", "m", "Mark", "s", "Space")]
+        $Parity,
+        [Parameter(Mandatory = $true, ParameterSetName = "CustomSettings")]
+        [ValidateSet("1", "1.5", "2")]
+        $StopBits,
+        [Parameter(Mandatory = $true, ParameterSetName = "CustomSettings")]
+        [ValidateSet("N", "None", "X", "XON_XOFF", "R", "RTS_CTS", "D", "DSR_DTR")]
+        $FlowControl
+    )
+
+    # Validate parameters
+    if ($PSCmdlet.ParameterSetName -eq "ProfileSettings") {
+        switch ($SettingsProfile) {
+            { $_ -match "cisco" } {
+                $SettingsProfileName = "Cisco"; $BaudRate = 9600; $DataBits = 8; $Parity = "n"; $StopBits = 1; $FlowControl = "X"
+            }
+            { $_ -match "(mikrotik|mt)" } {
+                $SettingsProfileName = "MikroTik x64"; $BaudRate = 115200; $DataBits = 8; $Parity = "n"; $StopBits = 1; $FlowControl = "R"
+            }
+            { $_ -match "(mikrotik|mt)x86$" } {
+                $SettingsProfileName = "MikroTik x86"; $BaudRate = 9600; $DataBits = 8; $Parity = "n"; $StopBits = 1; $FlowControl = "R"
+            }
+            { $_ -match "apc" } {
+                $SettingsProfileName = "APC"; $BaudRate = 9600; $DataBits = 8; $Parity = "n"; $StopBits = 1; $FlowControl = "N"
+            }
+            default {
+                $SettingsProfileName = "Default"; $BaudRate = 9600; $DataBits = 8; $Parity = "n"; $StopBits = 1; $FlowControl = "X";
+                Write-Verbose -Message "SettingsProfile value is `$null or not found; using default settings."
+            }
+        }
+    } else {
+        $SettingsProfileName = "Custom"        
+    }
+
+    Write-Verbose -Message "Using $SettingsProfileName settings: $BaudRate, $DataBits, $Parity, $StopBits, $FlowControl"
+
+    # Validate PuTTY path
+    $PuTTYPath = "C:\Program Files\PuTTY\putty.exe"
+    if (!(Test-Path -Path $PuTTYPath)) {
+        Write-Host "PuTTY.exe not found at `"$PuTTYPath`"." -ForegroundColor "Red"
+        return $false
+    }
+
+    # Get COM port
+    ## Get the PnP device using the COM port
+    ## Instance ID starts with FTDI for my adapter, but could be different for others. Should expand this later
+    $ComPort = Get-PnpDevice -Class "Ports" -PresentOnly | Where-Object -FilterScript { $_.InstanceId -match "^FTDI" }
+    if (!$ComPort) {
+        Write-Host "No USB serial adapter COM port detected." -ForegroundColor "Red"
+        return $false
+    } elseif ($ComPort.Count -gt 1) {
+        Write-Host "Multiple COM ports detected. Please specify the COM port to use." -ForegroundColor "Yellow"
+        $ComPort | ForEach-Object { Write-Host " - $($_.FriendlyName)" -ForegroundColor "Yellow" }
+        return $false
+    } else {
+        Write-Verbose -Message "Found COM port: $($ComPort.FriendlyName)"
+    }
+
+    ## Extract COM port number from PnP device
+    $null = $ComPort.FriendlyName -match "\((?<port>COM\d+)\)"
+    $Port = $Matches.port
+    if (!$Port) {
+        Write-Host "Failed to extract COM port number from device friendly name: $($ComPort.FriendlyName)" -ForegroundColor "Red"
+        return $false
+    }
+        
+    $Arguments = @(
+        "-serial $Port",
+        "-sercfg $BaudRate,$DataBits,$Parity,$StopBits,$FlowControl"
+    )
+
+    Write-Verbose -Message "Starting process: `"$PuTTYPath`" $($Arguments -join " ")"    
+    $process = Start-Process -FilePath $PuTTYPath -ArgumentList $Arguments -PassThru
+    if (!$process) {
+        Write-Host "Failed to start PuTTY process." -ForegroundColor "Red"
+        return $false
+    }
+
+    return
+}
