@@ -1032,3 +1032,28 @@ function Open-PuTTYSerialConnection {
 
     return
 }
+
+function Get-BitlockerRecoveryKey {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]]$ComputerName,
+
+        [Parameter()]
+        [PSCredential]$Credential
+    )
+
+    $ComputerName | ForEach-Object -Process {
+        $CN = $_
+
+        Get-ADComputer -Identity $CN | ForEach-Object -Process {
+            Get-ADObject -Filter "objectClass -eq `"msFVE-RecoveryInformation`"" -SearchBase $_.DistinguishedName -Properties "msFVE-RecoveryPassword"
+        } | ForEach-Object -Process {
+            [PSCustomObject]@{
+                ComputerName  = $CN
+                RecoveryKeyID = $_.Name -replace "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-\d{2}:\d{2}", "" -replace "({|})", ""
+                RecoveryKey   = $_."msFVE-RecoveryPassword"
+            }
+        }
+    }
+}
