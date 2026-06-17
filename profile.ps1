@@ -17,6 +17,6 @@ oh-my-posh init pwsh --config "$env:USERPROFILE\material.omp.json" | Invoke-Expr
 # Remind myself what functions I've already written
 $ExportedFunctions = Get-Module -Name "AlexFranco" -ListAvailable | Select-Object -ExpandProperty "ExportedFunctions" | Select-Object -ExpandProperty "Keys"
 Write-Host "Exported functions from AlexFranco module:" -ForegroundColor Cyan
-for ($n = 0; $n -lt $ExportedFunctions.Count; $n += 5) {
-    Write-Host " $($ExportedFunctions[$n..($n + 4)] -join ", ")" -ForegroundColor Cyan
+for ($n = 0; $n -lt $ExportedFunctions.Count; $n += 3) {
+    Write-Host " $($ExportedFunctions[$n..($n + 2)] -join ", ")" -ForegroundColor Cyan
 }
