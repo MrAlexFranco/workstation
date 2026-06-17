@@ -1057,3 +1057,20 @@ function Get-BitlockerRecoveryKey {
         }
     }
 }
+
+function du {
+    param (
+        [string]$Path
+    )
+    # Get all directories and calculate their sizes
+    Get-ChildItem $Path -Dir -Force -Rec -EA SilentlyContinue | ForEach-Object {
+        $Folder = $_.FullName
+        $Size = (Get-ChildItem $folder -Rec -Force -File -EA SilentlyContinue | Measure-Object length -Sum).Sum
+        [PSCustomObject]@{
+            FolderName = $Folder
+            SizeInKB   = "{0:N2}" -f ($Size / 1KB)
+            SizeInMB   = "{0:N2}" -f ($Size / 1MB)
+            SizeInGB   = "{0:N2}" -f ($Size / 1GB)
+        }
+    }
+}
