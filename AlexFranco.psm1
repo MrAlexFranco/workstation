@@ -558,11 +558,12 @@ CertificateTemplate=$Template
 "@
 
     ### Gathering Certificate information ###
-    $filename = $Subject.Substring(0, 3)
+    $filename = "$(Get-Date -Format "yyyy-MM-dd_HH-mm-ss")_$($Subject)"
 
     ### Make allowance for wildcard CNs
-    if ($filename -like "*") {        
-        $filename = ( -join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ }))
+    if ($filename -match "\*") {        
+        # $filename = ( -join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ }))
+        $filename = $filename -replace "\*", "Any"
     }
 
     $inputfiletemplate | Out-File "$filename.inf"
